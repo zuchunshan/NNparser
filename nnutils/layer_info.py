@@ -54,7 +54,10 @@ class LayerInfo:
                     size = list(inputs[0].data.size())
                 except AttributeError:
                     if isinstance(inputs[0],list):
-                        size = list(inputs[0][-2].shape)
+                        if len(inputs[0])==1:
+                            size = list(inputs[0][0].shape)
+                        else:
+                            size = list(inputs[0][-2].shape)
                     else:
                         size = [1,0] #all other casse are blank
                         # print(self.class_name)
