@@ -1,12 +1,16 @@
 import torch.nn as nn
 #from mlperf_compliance import mlperf_log
 
-import seq2seq.data.config as config
-from seq2seq.models.decoder import ResidualRecurrentDecoder
-from seq2seq.models.encoder import ResidualRecurrentEncoder
-from seq2seq.models.seq2seq_base import Seq2Seq
-from seq2seq.utils import gnmt_print
-
+# import seq2seq.data.config as config
+# from seq2seq.models.decoder import ResidualRecurrentDecoder
+# from seq2seq.models.encoder import ResidualRecurrentEncoder
+# from seq2seq.models.seq2seq_base import Seq2Seq
+# from seq2seq.utils import gnmt_print
+from ..data import config as config
+from ..models.decoder import ResidualRecurrentDecoder
+from ..models.encoder import ResidualRecurrentEncoder
+from ..models.seq2seq_base import Seq2Seq
+from ..utils import gnmt_print
 
 class GNMT(Seq2Seq):
     """

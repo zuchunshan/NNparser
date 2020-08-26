@@ -3,11 +3,12 @@ import itertools
 import torch
 import torch.nn as nn
 
-import seq2seq.data.config as config
-from seq2seq.models.attention import BahdanauAttention
-from seq2seq.utils import init_lstm_
-
-
+# import seq2seq.data.config as config
+# from seq2seq.models.attention import BahdanauAttention
+# from seq2seq.utils import init_lstm_
+from ..data import config as config
+from ..models.attention import BahdanauAttention
+from ..utils import init_lstm_
 class RecurrentAttention(nn.Module):
     """
     LSTM wrapped with an attention module.

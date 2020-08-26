@@ -25,7 +25,7 @@ import nnutils.pytools as pt
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-n","--nnname", help="Neural Network to be parsed",
-                    default='resnet18')
+                    default='gnmt')
 parser.add_argument("-b","--batchsize", help="Batch Sized",
                     default=1, type=int)
 parser.add_argument("-e","--BPE", help="Byte per element",
