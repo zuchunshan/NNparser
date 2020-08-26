@@ -22,7 +22,7 @@ import argparse
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-n","--nnname", help="Neural Networkto be parsed",
-                    default='VGG19')
+                    default='VGG16')
 parser.add_argument("-b","--batchsize", help="Batch Sized",
                     default=1, type=int)
 parser.add_argument("-e","--BPE", help="Byte per element",
