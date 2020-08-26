@@ -11,8 +11,8 @@ import nnutils.pytools as pt
 #    alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn,
 #   vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152, 
 #   squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201
-#   densenet_161, inception_v3, googlenet, shufflenet_V2_x'n'_'n', mobileNet_v2
-#   resnext_50_32x4d, resnext_101_32x8d, wide_resnet_50_2, wide_resnet_101_2
+#   densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2
+#   resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2
 #   mnasnet'n'_'n'
 
 # 2. Recomendation:
@@ -25,7 +25,7 @@ import nnutils.pytools as pt
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-n","--nnname", help="Neural Network to be parsed",
-                    default='densenet121')
+                    default='alexnet')
 parser.add_argument("-b","--batchsize", help="Batch Sized",
                     default=1, type=int)
 parser.add_argument("-e","--BPE", help="Byte per element",
