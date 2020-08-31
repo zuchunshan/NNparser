@@ -7,19 +7,22 @@ Created on Mon Jul  5  2020
 import nnutils.pytools as pt
 
 # Tested Models
-# 1. torchvision: 
+# 1. torchvision:
 #    alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn,
-#   vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152, 
-#   squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201
-#   densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2
-#   resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2
-#   mnasnet'n'_'n'
+#   vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152, googlenet
+#   SqueezeNet1_0, SqueezeNet1_1
+
+# ! TODO include these
+#   densenet_121, densenet_169, densenet_201
+#   densenet_161, inception_v3, shufflenet_V2_x'n'_'n', mobileNet_v2
+#   resnext_50_32x4d, resnext_101_32x8d, wide_resNet_50_2, wide_resnet_101_2
+#   MNASNet'n'_'n'
 
 # 2. Recomendation:
 #    dlrm
-
 # 3. Detection: maskrcnn, ssd_mobilenet, ssd_r34
 # 4. RNN: lstm,gru
+# ! this requires seq2seq, which will downgrade your tensorflow from 2.3 to 1.13
 # 5. NLP: gnmt
 
 import argparse
@@ -36,7 +39,7 @@ args = parser.parse_args()
 
 
 # producing the table of the model paramter list
-(ms, depth, isconv,y) = pt.modelLst(vars(args))    
+(ms, depth, isconv,y) = pt.modelLst(vars(args))
 ms = pt.tableGen(ms,depth,isconv)
 
 # exporting the table at //output//torch//
@@ -44,5 +47,5 @@ if args.nnname == 'newmodel':
     nnname = args.model
 else:
     nnname = args.nnname
-    
+
 pt.tableExport(ms,nnname,y)
