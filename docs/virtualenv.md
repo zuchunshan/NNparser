@@ -1,6 +1,6 @@
 #  Install Virtual Environment
 
-# With Anaconda
+# Option A: With Anaconda
 
 ​	It's recommended to run the tool on a virtual environment. Installation using Anaconda is demonstrated below. 	
 
@@ -55,7 +55,7 @@ Launch the anaconda command windows, in the window,
 
 
 
-# Without Anaconda
+# Option B: Without Anaconda
 
 ## 1. Install Virtual Environment with python-venv (e.g. in Linux System)
 [Python venv doc](https://docs.python.org/3/tutorial/venv.html) shows the command template as `python3 -m venv env_name`, make sure your Python is at least 3.3 for `venv` to work.
