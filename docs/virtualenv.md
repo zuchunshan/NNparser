@@ -2,7 +2,7 @@
 
 # Option A: With Anaconda
 
-​	It's recommended to run the tool on a virtual environment. Installation using Anaconda is demonstrated below. 	
+​	It's recommended to run the tool on a virtual environment. Installation using Anaconda is demonstrated below.
 
 ## 1. Install Anaconda
 
@@ -20,9 +20,9 @@
 
 
 
-## 2. Create a virtual environment 
+## 2. Create a virtual environment
 
-Launch the anaconda command windows, in the window, 
+Launch the anaconda command windows, in the window,
 
 2.1. Create a environment by:
 
@@ -32,17 +32,15 @@ Launch the anaconda command windows, in the window,
 
 ​			`conda activate nnp`
 
-2.3. install the python package 
+2.3. install the python package
 
-​			`conda install xx` 
+​			`conda install xx`
 
 ​		where xx is the package name. The following packages are required for the tool:
 
 ​		Python 3.6+, 	Tensorflow 2.1 +,  Pytorch 1.5+
 
-​		pandas,​		numpy,​		matplotlib
-​		openpyxl, 	scikit-learn, 	scikit-image
-​		graphviz, 	python-graphviz, 		pydot
+    pandas,​ numpy,​ matplotlib,​ openpyxl, scikit-learn, scikit-image, graphviz, python-graphviz, pydot
 
 2.4 other packages
 
