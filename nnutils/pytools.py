@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jul 16 11:47:13 2020
-
 @author: LL
+
+Updated on Mon Aug 31 20:09:31 2020
+@Stephen Qian
 """
 
 import torch
@@ -15,14 +17,14 @@ import  pandas as pd
 
 def modelLst(ucfg):
     ''' ucfg: user's Config for the table output: nnname, BS, BPE '''
-    
+
     nnname = ucfg['nnname']
-    
+
     # produce config list of models per layer of the given nn model name
     isconv = True
     depth = 4
     col_names_noconv=("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti")
-   
+
 
     if nnname == 'newmodel':
         import sys
@@ -34,14 +36,14 @@ def modelLst(ucfg):
         else:
             ms=str(summary(model,x, col_names=col_names_noconv, depth=depth,branching=2,verbose=1,ucfg=ucfg))
         sys.path.remove("..")
-        
+
     # vision models in torchvision
     if hasattr(models,nnname):
         model = getattr(models, nnname)()
         x = torch.rand(1,3,224,224)
         y = model(x)        
         ms=str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
-            
+
     if nnname=='maskrcnn':
         depth = 6
         model = models.detection.maskrcnn_resnet50_fpn(pretrained=False)
@@ -52,7 +54,7 @@ def modelLst(ucfg):
         x = [torch.rand(1,3, 800, 800)]
         ms=str(summary(model,(x,), depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
-    
+
     if nnname =='dlrm':
         depth=2
         isconv = False
@@ -81,7 +83,7 @@ def modelLst(ucfg):
         else:
             col_names =col_names_noconv
             ms=str(summary(model,inst, col_names=col_names, depth=depth,branching=2,verbose=1,ucfg=ucfg))
-    
+
     if nnname =='bert-base-cased':
         isconv = False
         from transformers import AutoModel # using Huggingface's version
@@ -95,7 +97,7 @@ def modelLst(ucfg):
         else:
             col_names =col_names_noconv
             ms=str(summary(model,inst, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
-  
+
     if nnname =='mymodel':
         depth=2
         isconv = False
@@ -118,7 +120,7 @@ def modelLst(ucfg):
 
         y = model(x)
         ms=str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
-        
+
 
     if nnname =='lstm':
         depth=2
@@ -129,7 +131,7 @@ def modelLst(ucfg):
         y = model(x)
         col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti")
         ms=str(summary(model,x, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
-        
+
     if nnname =='gru':
         depth=2
         isconv = False
@@ -139,7 +141,7 @@ def modelLst(ucfg):
         y = model(x)
         col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti")
         ms=str(summary(model,x, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
-        
+
     if nnname == 'ssd_mobilenet':
         depth = 3
         branching=2
@@ -151,7 +153,7 @@ def modelLst(ucfg):
         ms=str(summary(model,(x,), depth=depth,branching=branching,verbose=1,ucfg=ucfg))
         if branching==0:
             depth=0
-            
+
     if nnname == 'ssd_r34':
         depth = 6
         branching=2
@@ -161,7 +163,7 @@ def modelLst(ucfg):
         x = torch.rand(1,3,1200,1200)
         y = model(x)
         ms=str(summary(model,(x,), depth=depth,branching=branching,verbose=1,ucfg=ucfg))
-        
+
     if nnname == 'gnmt':
         depth = 4
         isconv = False
@@ -179,7 +181,7 @@ def modelLst(ucfg):
         srclen=torch.ones(batch).to(torch.long)*seqlen
         y=model(x,srclen,x)
         ms=str(summary(model,([x,srclen,x],), col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
-        
+
     if nnname == 'crnn':
         depth = 6
         from torchmodels.crnn import CRNN
@@ -189,7 +191,7 @@ def modelLst(ucfg):
         y = model(x)
         ms=str(summary(model,(x,), depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
-        
+
     return ms, depth, isconv,y
 
 # table gen
@@ -201,7 +203,7 @@ def tableGen(ms,depth,isconv):
     else:
         for i in range(depth):
             header += 'layer_l{},'.format(i)
-        
+
     if isconv:
         header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
         header += 'O1,O2,O3,' # output: coxhxw
@@ -220,26 +222,26 @@ def tableGen(ms,depth,isconv):
     ms = header + ms
     return ms
 
-def tableExport(ms,nnname,y):        
+def tableExport(ms,nnname,y):
     ms =ms.split('\n')
-    ms = ms[:-1] # remove the last row 
+    ms = ms[:-1] # remove the last row
     paralist=[]
     for row in ms:
         lst=row.split(',')
         for i in range(len(lst)):
             lst[i] = int(lst[i]) if lst[i].strip().isnumeric() else lst[i].strip()
         paralist.append(lst)
-        
+
     df = pd.DataFrame(paralist)
     df.drop(df.columns[[-1]],axis=1,inplace = True) # remove last column
-    paraout = './/outputs//torch//'+nnname+'.xlsx'  
+    paraout = './/outputs//torch//'+nnname+'.xlsx'
     with pd.ExcelWriter(paraout) as writer:
         df.to_excel(writer,sheet_name='details')
         writer.save()
     writer.close()
     maxVal=ft.SumTable(paraout)
     ft.FormatTable(paraout,maxVal)
-    
+
     if True:
         if isinstance(y,dict):
             for k,v in y.items():
@@ -263,8 +265,8 @@ def tableExport(ms,nnname,y):
             v=y[0]
             if isinstance(v[0],torch.Tensor):
                 if v[0].grad_fn:
-                       outputname ='.//outputs//torch//'+nnname
-                       try:
-                           dg.graph(v[0],outputname)
-                       except :
-                           print('Failed to generate model Graph')
+                    outputname ='.//outputs//torch//'+nnname
+                    try:
+                        dg.graph(v[0],outputname)
+                    except :
+                        print('Failed to generate model Graph')

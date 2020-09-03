@@ -62,4 +62,6 @@ After installation, activate it by typing `source env_name/bin/activate`
 ## 2. Install Miscellaneous Required Packages
 In your virtual env, type `pip3 install module_name` to install all desired modules. Typically, you would need to install `pandas numpy matplotlib openpyxl scikit-learn scikit-image graphviz pydot`. (And of course, `tensorflow torch torchvision` etc.)
 
+For example, we have tested a virtual env with Python 3.8.2, pytorch 1.6.0 etc., a full list of module is saved in [req_wo_anaconda.txt](https://github.com/BirenResearch/NNparser/blob/master/req_wo_anaconda.txt).
+
 NOTE: You may find it failed to generate Network Graph, that's because, as mentioned in issue ["No module named pydot"](https://stackoverflow.com/questions/35177262/importerror-no-module-named-pydot-unable-to-import-pydot) and ["Failed to import pydot"](https://stackoverflow.com/questions/36886711/keras-runtimeerror-failed-to-import-pydot-after-installing-graphviz-and-pyd), "graphviz package is just a python wrapper, and the graphviz binaries have to be installed separately for the python wrapper to work." One can fix this by simply following the instructions described [here](https://graphviz.gitlab.io/download/). (For example, in Ubuntu, type in `sudo apt install graphviz`.)

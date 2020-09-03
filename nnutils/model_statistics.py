@@ -1,11 +1,7 @@
 """ model_statistics.py """
-from typing import Any, List, Optional, Sequence, Union
-
-import numpy as np
-import torch
+from .layer_info import *
 
 from .formatting import FormattingOptions, Verbosity
-from .layer_info import LayerInfo
 
 HEADER_TITLES = {
     "kernel_size": "Kernel Shape",
@@ -53,7 +49,7 @@ class ModelStatistics:
         """ Print results of the summary. """
         #header_row = self.formatting.format_row("Layer (type:depth-idx)", HEADER_TITLES)
         layer_rows = self.layers_to_str()
-       
+
         summary_str = ("{}".format(layer_rows))
         return summary_str
 

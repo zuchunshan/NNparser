@@ -17,9 +17,7 @@ It is recommended to install the tool in a virtual environment, explained in [th
 1.2. The tool works with :
 
 ​		Python 3.6+,
-
 ​		Tensorflow 2.1 +,
-
 ​		Pytorch 1.5+
 
 1.3. Install the following Python modules:
@@ -62,36 +60,38 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 1. torchvision:
 
-   - base models
+- base models
 
-   ​	alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn,
+​	alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn,
+​	vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152,
+​	squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201,
+​	densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2,
+​	resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2,
+​	mnasnet'n'_'n'
 
-   ​	vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152,
+- detection model
 
-   ​	squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201,
+​	maskrcnn
 
-   ​	densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2,
+2. Recomendation:
 
-   ​	resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2,
+​	dlrm
 
-   ​	mnasnet'n'_'n'
+3. RNN network:
 
-   - detection model
-
-   ​	maskrcnn 
-
-2. Recomendation: 
-
-   ​	dlrm
-
-3. RNN network: 
-
-   - base: lstm, gru
-   - gnmt
+- base: lstm, gru
+- gnmt
 
 4.  one stage detection: ssd_mobilenet, ssd_r34
 
 5. Others Models can also be imported, as long as a input tensor is provided  with the model. Please refer to **Section 4** for details.
+
+
+NOTE:
+1. gnmt model requires seq2seq, which will ask you to downgrade your tensorflow from 2.1+ back to 1.13. Remember to upgrade it back to 2.1+ for other models when needed.
+
+2. Some models, such as densenet, will take significantly longer to render network graph because of its complexity. Based on our test (with CPU instead of GPU), a densenet121 takes about several minutes to finish, while densenet161/densenet169 would require more than 2 hours to generate corresponding PDF file.
+
 
 ### 2.2. Tensorflow version: keras2table
 
@@ -99,7 +99,7 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 - type the command as the following format to get the results
 
-  ​	`python keras2table.py -n ResNet50 -b 1 -e 1` 
+  ​	`python keras2table.py -n ResNet50 -b 1 -e 1`
 
 - three optional arguments are:
 
@@ -113,21 +113,11 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 ##### 2.2.2. Tested models:
 
-1. keras pretrianed models: 
-
-​    'DenseNet121', 'DenseNet169', 'DenseNet201',
-
-​    'InceptionResNetV2', 'InceptionV3',
-
-​     'MobileNet', 'MobileNetV2',
-
-​     'NASNetLarge', 'NASNetMobile',
-
-​     'ResNet101', 'ResNet101V2', 'ResNet152', 'ResNet152V2', 'ResNet50', 'ResNet50V2',
-
-​     'VGG16', 'VGG19',
-
-​     'Xception',
+1. keras pretrianed models:
+​    'DenseNet121', 'DenseNet169', 'DenseNet201', 'InceptionResNetV2', 'InceptionV3',
+​    'MobileNet', 'MobileNetV2', 'NASNetLarge', 'NASNetMobile',
+​    'ResNet101', 'ResNet101V2', 'ResNet152', 'ResNet152V2', 'ResNet50', 'ResNet50V2',
+​    'VGG16', 'VGG19',​ 'Xception',
 
 2. Reomendeation: din
 
@@ -139,7 +129,7 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 - keras-bert module should be installed for analysis,
 
-    ​		`pip3 install keras-bert` 
+    ​		`pip3 install keras-bert`
 
 - For DIN model, please clone the packages from [tensorflow/models](https://github.com/tensorflow/models) to a local folder, and add the folder into  PYTHONPATH
 
@@ -147,13 +137,13 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 ## 3. Outputs
 
-​	There are two types of output files in the //outputs// torch// ( or //tf) folder: tables in xlsx and graph in pdf. Both are named as the input name of neural networks. 
+​	There are two types of output files in the //outputs// torch// ( or //tf) folder: tables in xlsx and graph in pdf. Both are named as the input name of neural networks.
 
-### 3.1. The excel table with two sheets.  
+### 3.1. The excel table with two sheets.
 
 #### 	3.1.1. summaries sheet:
 
-​	 	Total counts of memory and computation costs. 
+​	 	Total counts of memory and computation costs.
 
 ​			Note that  1M = 1024 x 1024 for data  size and 1G = 1E9 for ops counts
 
@@ -174,13 +164,13 @@ It is recommended to install the tool in a virtual environment, explained in [th
         |    |    └─Conv2d: 3-1             ==>				     	|		        | Conv2d: 3-1
         |    |    └─BatchNorm2d: 3-2             			        |		        | BatchNorm2d: 3-2
         |    |    └─ReLU: 3-3      						|		        | ReLU: 3-3
-        
+
         Pytoch Model Hierarchy								pytorch table
 ```
 
 ​		**Input tensors :**
 
-​			TF Keras version: 
+​			TF Keras version:
 
 ​				I0_1,I0_2, I0_3: the shape of the first input
 
@@ -192,15 +182,15 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 ​		**Output tensors:** O1,O2,O3: th eshap of the first output
 
-​		**Kernel Tensors:** 
+​		**Kernel Tensors:**
 
-​			k1,k2: kernel size H&W for conv & pooling; 
+​			k1,k2: kernel size H&W for conv & pooling;
 
 ​			s1,s2: stride H&W of rolling windows;
 
 ​			p1,p2: padding size, values are calculated based on centric padding
 
-​		**Memory Costs:** 
+​		**Memory Costs:**
 
 ​			SizeI: Size of input tensors
 
@@ -238,9 +228,9 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 ## 4. Add your own model
 
-​	One can simply leverage the API in 'newmodel.py' in the root to analyze any customized models, as long as the models are built-up and ready for test. 
+​	One can simply leverage the API in 'newmodel.py' in the root to analyze any customized models, as long as the models are built-up and ready for test.
 
-​	There are two major steps for a new model:  1 set the  model info ; 2 execute the main parser codes. 
+​	There are two major steps for a new model:  1 set the  model info ; 2 execute the main parser codes.
 
 #### 4.1 pytorch
 
@@ -268,11 +258,11 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 ### 4.2 keras-tf
 
-​	The operations for Keras model are similar to pytorch model: 
+​	The operations for Keras model are similar to pytorch model:
 
-​		1 set the model configs. in 'tfmodel()' in 'newmodel.py' ; 
+​		1 set the model configs. in 'tfmodel()' in 'newmodel.py';
 
-​		2 execute command 
+​		2 execute command
 
 ​				`python keras2table.py -n newmodel  --model your_model`
 
@@ -280,19 +270,19 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 ## 5. Advances
 
-​	One can further analyze the various configures of a NN models by changing default settings in the codes. Two examples are shown below.   
+​	One can further analyze the various configures of a NN models by changing default settings in the codes. Two examples are shown below.
 
-​	Note that the functions ( getmodel() & modelLst() ) mentioned below also demonstrate the ways to add a neural network model. Additional neural network models can be added using the similar approaches. 
+​	Note that the functions ( getmodel() & modelLst() ) mentioned below also demonstrate the ways to add a neural network model. Additional neural network models can be added using the similar approaches.
 
 ### Example 1: bert in keras-tf
 
-1. Bert models with different settings  
+1. Bert models with different settings
 
    The setting of bert model can be obtained by changing the optional arguments of  the 'get_model' function at line 320 in //utils//tftools//getmodel(), please refer to the [keras-bert](https://pypi.org/project/keras-bert/) for detailed settings for the bert model
 
 2. inference model
 
-   To get bert inference model, two revisions are required: 
+   To get bert inference model, two revisions are required:
 
    1. change training = Flase at line 310  //utils//tftools//getmodel()
 
@@ -311,6 +301,6 @@ It is recommended to install the tool in a virtual environment, explained in [th
 ### References:
 
 - Codes for Pytorch model estimation were revised based on [torch-summary](https://github.com/TylerYep/torch-summary) @TylerYep
-- Keras version EfficientNet is originated from [EfficientNet](https://github.com/qubvel/efficientnet/tree/master/efficientnet) @qubvel  
+- Keras version EfficientNet is originated from [EfficientNet](https://github.com/qubvel/efficientnet/tree/master/efficientnet) @qubvel
 - DLRM is originated from [DLRM](https://github.com/facebookresearch/dlrm) by facebook
 - ML Perf models from [ML perf](https://github.com/mlperf) @mlperf

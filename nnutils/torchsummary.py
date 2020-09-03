@@ -1,12 +1,9 @@
 """ torchsummary.py """
-from typing import Any, Dict, Generator, List, Optional, Sequence, Union
 
-import torch
-import torch.nn as nn
+from .layer_info import *
+
 from torch.utils.hooks import RemovableHandle
-
 from .formatting import FormattingOptions, Verbosity
-from .layer_info import LayerInfo
 from .model_statistics import CORRECTED_INPUT_SIZE_TYPE, ModelStatistics
 
 # Some modules do the computation themselves using parameters
@@ -20,7 +17,7 @@ def summary(
     input_data: Union[torch.Tensor, torch.Size, Sequence[torch.Tensor], INPUT_SIZE_TYPE],
     *args: Any,
     batch_dim: int = 0,
-    branching: int = 1, # 0: no branch,1:branch line,2: branch 
+    branching: int = 1, # 0: no branch,1:branch line,2: branch
     col_names: Sequence[str] = ("input_size","output_size","kernel_size", "stride_size", "pad_size", "num_in","num_out","num_params","gemm","vect","acti"),
     col_width: int = 25,
     depth: int = 3,
@@ -68,15 +65,15 @@ def summary(
 
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # single real input    
+
+    # single real input
     if isinstance(input_data, torch.Tensor):
         input_size = get_correct_input_sizes(input_data.size())
         x = [input_data.to(device)]
-    # ====================== input with args : ([x],[args])   
+    # ====================== input with args : ([x],[args])
     elif isinstance(input_data,  tuple):
         # x list
-        inputx = input_data[0] 
+        inputx = input_data[0]
         x=[]
         if not isinstance(inputx,list):
             input_size = get_correct_input_sizes(inputx.size())
@@ -93,7 +90,7 @@ def summary(
                         dtypes = [torch.float] * len(item)
                         input_size = get_correct_input_sizes(item)
                         x.append( get_input_tensor(input_size, batch_dim, dtypes, device))
-            
+
         # args list
         if len(input_data)>1:
             inputarg = input_data[1]
@@ -106,7 +103,7 @@ def summary(
                         x.append(arg.to(device))
             else:
                 x.append(inputarg.to(device))
-                         
+
     else:
         raise TypeError(
             "Input type is not recognized. Please ensure input_data is valid.\n"
@@ -154,7 +151,7 @@ def get_input_tensor(
                     if isinstance(si,tuple): # if a high-dim tensor, int/float random?
                         input_tensor = torch.rand(*si)# to do: integer?
                     else:
-                        input_tensor = torch.randint(0,1,(1,si)) 
+                        input_tensor = torch.randint(0,1,(1,si))
                         input_tensor = input_tensor[0] # 1d tensor
                     result = input_tensor.to(device).type(torch.long)
                     tmp.append(result)
@@ -212,7 +209,6 @@ def apply_hooks(
     idx: Dict[int, int],
     batch_dim: int,
     curr_depth: int = 0,
-    
 ) -> None:
     """ Recursively adds hooks to all layers of the model. """
 
@@ -220,8 +216,8 @@ def apply_hooks(
         """ Create a LayerInfo object to aggregate information about that layer. """
         idx[curr_depth] = idx.get(curr_depth, 0) + 1
         info = LayerInfo(module, curr_depth, idx[curr_depth])
-        info.calculate_input_size(inputs, batch_dim)   #0614
-        del inputs #0614
+        info.calculate_input_size(inputs, batch_dim)
+        del inputs
         info.calculate_output_size(outputs, batch_dim)
         info.calculate_num_params()
         info.check_recursive(summary_list)

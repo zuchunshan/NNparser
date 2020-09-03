@@ -1,11 +1,11 @@
 """ layer_info.py """
-from typing import Any, Dict, List, Sequence, Union
+from typing import Any, Dict, Generator, List, Optional, Sequence, Union
 
 import numpy as np
 import torch
 import torch.nn as nn
 
-DETECTED_INPUT_TYPES = Union[Sequence[Any], Dict[Any, torch.Tensor], torch.Tensor] #0614
+DETECTED_INPUT_TYPES = Union[Sequence[Any], Dict[Any, torch.Tensor], torch.Tensor]
 DETECTED_OUTPUT_TYPES = Union[Sequence[Any], Dict[Any, torch.Tensor], torch.Tensor]
 
 
@@ -24,11 +24,11 @@ class LayerInfo:
         # Statistics
         self.trainable = True
         self.is_recursive = False
-        self.input_size = []    # 0614, func.copied from output_size
+        self.input_size = []    # func.copied from output_size
         self.output_size = []  # type: List[Union[int, Sequence[Any], torch.Size]]
         self.kernel_size = []  # type: List[int]
-        self.stride_size = []   #0614,list: 1/2 elements
-        self.pad_size = []  #0614
+        self.stride_size = []  # list: 1/2 elements
+        self.pad_size = []
         self.num_params = 0
         self.macs = 0
         self.gemm = []
@@ -37,33 +37,34 @@ class LayerInfo:
 
     def __repr__(self) -> str:
         return "{}: {}-{}".format(self.class_name, self.depth, self.depth_index)
-    
-    # 0614,
+
     def calculate_input_size(self, inputs: DETECTED_INPUT_TYPES, batch_dim: int) -> None:
         """ Set input_size using the model's inputs. """
         # if "LastLevelMaxPool" in self.class_name:
         #     print('multiple input List') #(tensor list,tensor list,list str)
         # if "MultiScaleRoIAlign" in self.class_name: #AnchorGenerator
-        #     print('ImageList Gen')    
-        if isinstance(inputs, (list, tuple)):
+        #     print('ImageList Gen')
+        if isinstance(inputs, (list, tuple)): # union
             try:
-                self.input_size = list(inputs[0].size())
+                self.input_size = list(inputs[0].size()) # prod of h,w,c etc.
             except AttributeError:
                 # pack_padded_seq and pad_packed_seq store feature into data attribute
                 try:
                     size = list(inputs[0].data.size())
                 except AttributeError:
-                    if isinstance(inputs[0],list):
+                    if isinstance(inputs[0], list):
+                        # TODO check expressions/structure
                         if len(inputs[0])==1:
                             size = list(inputs[0][0].shape)
                         else:
                             size = list(inputs[0][-2].shape)
                     else:
-                        size = [1,0] #all other casse are blank
+                        size = [1,0] # all other casse are blank
                         # print(self.class_name)
                 self.input_size = size[:batch_dim] + [-1] + size[batch_dim + 1 :]
 
         elif isinstance(inputs, dict):
+            # TODO different form?
             for _, input in inputs.items():
                 size = list(input.size())
                 size_with_batch = size[:batch_dim] + [-1] + size[batch_dim + 1 :]
@@ -77,10 +78,10 @@ class LayerInfo:
             raise TypeError(
                 "Model contains a layer with an unsupported input type: {}".format(inputs)
             )
-            
+
     def calculate_output_size(self, outputs: DETECTED_OUTPUT_TYPES, batch_dim: int) -> None:
         """ Set output_size using the model's outputs. """
-        # if "LastLevelMaxPool" in self.class_name: 
+        # if "LastLevelMaxPool" in self.class_name:
         #     print('multiple output Lists') #(tensor list,list str)
         # if "GeneralizedRCNNTransform" in self.class_name:
         #     print('ImageList Gen')
@@ -88,17 +89,17 @@ class LayerInfo:
             try:
                 self.output_size = list(outputs[0].size())
             except AttributeError:
-                  # pack_padded_seq and pad_packed_seq store feature into data attribute
+                # pack_padded_seq and pad_packed_seq store feature into data attribute
                 try:
                     size = list(outputs[0].data.size())
                 except AttributeError:
-                    if isinstance(outputs[0],list):                        
+                    if isinstance(outputs[0],list):
                         if isinstance(outputs[0][-1],torch.Tensor):
                             size = list(outputs[0][-1].shape)
                         elif isinstance(outputs[0][-1],dict): # detection results in rcnn
                             size = [1, len(outputs[0][-1])]
                         else:
-                            size = [1,0] #other cases for output[0][0]
+                            size = [1,0] # other cases for output[0][0]
                             print(self.class_name)
                     else:
                         size = [1,0] #all other casse are blank
@@ -120,27 +121,27 @@ class LayerInfo:
             )
 
     def calculate_num_params(self) -> None:
-        ub=0 # bias flag
-        if hasattr(self.module,'stride'):  #0614
+        ub = False # bias flag
+        if hasattr(self.module, 'stride'):
             if isinstance(self.module.stride,tuple):
                 self.stride_size = list(self.module.stride)
             else: # make a 2 elem list for unified output
                 self.stride_size = [self.module.stride,'']
-            
-        if hasattr(self.module,'padding'): #0614
+
+        if hasattr(self.module,'padding'):
             if isinstance(self.module.padding,tuple):
                 self.pad_size = list(self.module.padding)
             else: # make a 2 elem list
                 self.pad_size = [self.module.padding,'']
-            
-        """ Set num_params using the module's parameters.  """
+
+        """ Set num_params using the module's parameters. Generator """
         for name, param in self.module.named_parameters():
             self.num_params += param.nelement()
             self.trainable &= param.requires_grad
             # ignore N, C when calculate Mult-Adds in ConvNd
-                                
+
             if name == "weight":
-                ksize = list(param.size())
+                ksize = list(param.size()) # or shape
                 # to make [in_shape, out_shape, ksize, ksize]
                 if len(ksize) > 1:
                     ksize[0], ksize[1] = ksize[1], ksize[0]
@@ -151,30 +152,34 @@ class LayerInfo:
                     self.macs += (param.nelement() * int(np.prod(self.output_size[2:])))
                 else:
                     self.macs += param.nelement()
+
             # RNN modules have inner weights such as weight_ih_l0
             elif "weight" in name:
                 self.inner_layers[name] = list(param.size())
+                # ?
                 self.macs += param.nelement()
-            
+
             if name == "bias":
-                ub=1
-                
+                ub=True
+
+        # LL
         if "Conv" in self.class_name:
-            units= int(np.prod(self.output_size[1:]))
+            # ? exclude batch size
+            units = int(np.prod(self.output_size[1:]))
             self.gemm = int(np.prod(self.output_size[2:])) *int(np.prod(self.kernel_size))+units*ub
         elif "BatchNorm2d" in self.class_name:
-            self.vect = int(np.prod(self.output_size[1:]))*2 #1 elem* 1elem+
+            self.vect = int(np.prod(self.output_size[1:]))*2 # 1 elem* 1 elem+
         elif "ReLU" in self.class_name:
             self.acti = int(np.prod(self.output_size[1:]))
         elif "MaxPool2d" in self.class_name:
             ksize=self.module.kernel_size
             csize=self.output_size[1]
             self.kernel_size=(csize,csize,ksize,ksize)
-            self.vect = int(np.prod(self.output_size[1:]))*int(np.prod(self.kernel_size[2:])-1)            
+            self.vect = int(np.prod(self.output_size[1:]))*int(np.prod(self.kernel_size[2:])-1)
         elif "Linear" in self.class_name:
             # lens = self.input_size[1]
             # units= self.output_size[1]
-            #self.gemm = lens*units+ units*ub
+            # self.gemm = lens*units+ units*ub
             self.gemm = self.macs
         elif "Sigmoid" in self.class_name:
             self.acti = self.output_size[1]
@@ -186,25 +191,24 @@ class LayerInfo:
             self.gemm = self.macs+6*ub*self.module.num_layers*self.module.hidden_size
         else:
             self.gemm = self.macs
-        
-        for name,aa in self.module.named_children(): 
+
+        # if this layer has children, i.e. this is sequential layer, set to 0 to avoid duplicate counting
+        if list(self.module.named_children()):
             self.num_params = 0
             self.input_size = [0]*4
             self.output_size = [0]*4
             self.gemm = 0
-            #print(self.class_name)
-            break
-           
+
     def check_recursive(self, summary_list: "List[LayerInfo]") -> None:
         """ if the current module is already-used, mark as (recursive).
-        Must check before adding line to the summary. """
+        ! Must check before adding line to the summary. """
         if list(self.module.named_parameters()):
             for other_layer in summary_list:
                 if self.layer_id == other_layer.layer_id:
                     self.is_recursive = True
 
     def macs_to_str(self, reached_max_depth: bool) -> str:
-        """ Convert MACs to string. """
+        """ Convert MACs to string. Comma separated {:,} """
         if self.num_params > 0 and (reached_max_depth or not any(self.module.children())):
             return "{:,}".format(self.macs)
         return "--"
