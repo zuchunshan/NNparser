@@ -13,7 +13,7 @@ import nnutils.formattable as ft
 def headgen(isconv):
     # to do: adjust the names according to models
     paralist = []
-    if isconv:     
+    if isconv:
         dim =3 # 4 dim tensor: BHWC, no B
         linput=['I0_'+str(i) for i in range(dim)] + ['I1_'+str(i) for i in range(dim)]
         loutput=['O_'+str(i) for i in range(dim)]
@@ -39,23 +39,23 @@ def inputgen(x,inp0,inp1,extin):
         datai0=1
         for i in range(1,4,1):
             try:
-                inp0[i-1]=x.input.shape[i]                
+                inp0[i-1]=x.input.shape[i]
             except IndexError:
                 None
         for item in inp0:
             if isinstance(item,int):
-                datai0=datai0*item            
+                datai0=datai0*item
         datai=(datai0)
     elif len(x.input)>1:       # 2 inputs
         datai0=1
-        for i in range(1,4,1):            
+        for i in range(1,4,1):
             try:
                 inp0[i-1]=x.input[0].shape[i]
             except IndexError:
                 None
         for item in inp0:
             if isinstance(item,int):
-                datai0=datai0*item 
+                datai0=datai0*item
         datai1=1
         for i in range(1,4,1):
             try:
@@ -64,7 +64,7 @@ def inputgen(x,inp0,inp1,extin):
                 None
         for item in inp1:
             if isinstance(item,int):
-                datai1=datai1*item 
+                datai1=datai1*item
         datai=(datai0+datai1)
         if len(x.input)>2:
             for inp in x.input_shape[2:]:
@@ -78,33 +78,33 @@ def inputgen(x,inp0,inp1,extin):
             extin = extin[:-1]
     return inp0,inp1,datai,extin
 
-def outputgen(x,out,extin):            
-    # output: 
-    if not isinstance(x.output, list): 
+def outputgen(x,out,extin):
+    # output:
+    if not isinstance(x.output, list):
         # single output：2d vector or 4d tensor: batch x oh x ow x oc
         datao=1
-        for i in range(1,4,1):            
+        for i in range(1,4,1):
             try:
                 out[i-1]=x.output.shape[i]
             except IndexError:
                 None
         for item in out:
             if isinstance(item,int):
-                datao=datao*item     
+                datao=datao*item
     else: # output0,size of more outputs
         datao=1
-        for i in range(1,4,1):            
+        for i in range(1,4,1):
             try:
                 out[i-1]=x.output[0].shape[i]
             except IndexError:
                 None
         for item in out:
             if isinstance(item,int):
-                datao=datao*item 
+                datao=datao*item
         if len(x.output)>1:
             extin += ';' # addtional output
         for i in range(1,len(x.output),1):
-            dtmp=1 
+            dtmp=1
             tmp=x.output[i].shape
             for item in tmp:
                 if isinstance(item,int):
@@ -114,23 +114,23 @@ def outputgen(x,out,extin):
         extin = extin[:-1]
     ltype = str(type(x)).split(".")[-1].split("'")[0]
     if ltype:
-         if ltype=='MultiHeadAttention': #attentio layer
-                     # outputs: features of a sentence
+        if ltype=='MultiHeadAttention': #attentio layer
+            # outputs: features of a sentence
             seqlen = x.input_shape[1]
             datao= datao*seqlen
             out[0] = seqlen # to fix output dim1 = None
-         
+
     return out,datao,extin
 
-def getweightsize(x,dataw):    
+def getweightsize(x,dataw):
     weights=x.get_weights()
-    if len(weights)>0: 
+    if len(weights)>0:
         dataw=0
         for item in weights:
             dataw += int(np.prod(item.shape))
     return dataw
 
-def opscomputation(x,datao,inp0):    
+def opscomputation(x,datao,inp0):
     ltype = str(type(x)).split(".")[-1].split("'")[0]
     gemm=''; vect='' ; acti =''
     if ltype:
@@ -154,11 +154,11 @@ def opscomputation(x,datao,inp0):
             # / sqrt(kenlen)
             vect += seqlen*seqlen
             # softmax
-            acti += seqlen*seqlen 
+            acti += seqlen*seqlen
             # f(Q*K') * (x*W_v), Wv emblen*keylen (same dim on W_q,W_k,W_v)
             VS = seqlen*emblen*keylen + seqlen*keylen*ub # V: seqlen*keylen
             FV = seqlen*seqlen*keylen # F(QK)*V: seqlen*keylen
-            gemm += VS+FV 
+            gemm += VS+FV
             gemmoh = gemm
             vectoh = vect
             actioh = acti
@@ -173,9 +173,7 @@ def opscomputation(x,datao,inp0):
             gemm = [gemmoh, gemm]
             vect = [vectoh,vect]
             acti = [actioh, acti]
-            
 
-            
         elif ltype=='LayerNormalization': #attentio layer
             seqlen,emblen = inp0[:2]
             vect=0; acti=0
@@ -189,7 +187,7 @@ def opscomputation(x,datao,inp0):
             acti += (seqlen)
             # output:( x-mx)/std
             vect += (seqlen*2)
-        
+
         elif ltype=='FeedForward': #attentio layer
             seqlen,emblen = inp0[:2]
             units=x.units
@@ -201,44 +199,44 @@ def opscomputation(x,datao,inp0):
             # w2x+b
             gemm += seqlen*units*emblen +seqlen*emblen*ub
             acti += seqlen*emblen
-        
+
         elif ltype=='Dense':
             lens = x.input_shape[1]
             ub = 1 if x.use_bias else 0
             units=x.units
             gemm = lens*units+ units*ub#1 add 2mac
             acti = lens*ub
-            
+
         elif ltype=='Conv2D':
             ub = 1 if x.use_bias else 0
             gemm=int(np.prod(x.kernel_size))*inp0[2]*datao+x.output_shape[3]*ub
-            
+
         elif ltype== 'GlobalAveragePooling2D':
             vect=datao*(inp0[0]*inp0[1]-1) #add op
-            
+
         elif ltype=='Activation':
             acti = datao  #activation functions
-        
+
         elif ltype=='DepthwiseConv2D':
             ub = 1 if x.use_bias else 0
             gemm=int(np.prod(x.kernel_size))*datao+x.output_shape[3]*ub
-        
+
         elif ltype=='MaxPooling2D':
             vect=datao*int((np.prod(x.pool_size)-1)) #max op
-        
+
         else:
             weights=x.get_weights()
-            if len(weights)>0: 
+            if len(weights)>0:
                 gemm=0
                 for item in weights:
                     gemm += int(np.prod(item.shape))
-        
+
     return gemm,vect,acti
 
 def pararetrival(x):
-    conf = x.get_config()  
+    conf = x.get_config()
     kh = ''; kw=''; sh = ''; sw=''; ph = ''; pw=''
-    # Conv2d, MaxPooling2D, 
+    # Conv2d, MaxPooling2D,
     if isinstance(x, keras.layers.Conv2D):
         # kernel size
         kh, kw = x.kernel_size
@@ -251,8 +249,7 @@ def pararetrival(x):
         elif conf['padding']=='same':
             ph=kh//2
             pw=kw//2
-    
- 
+
     if isinstance(x, keras.layers.DepthwiseConv2D):
         # kernel size
         kh, kw = x.kernel_size
@@ -265,7 +262,7 @@ def pararetrival(x):
         elif conf['padding']=='same':
             ph=kh//2
             pw=kw//2
-           
+
     if isinstance(x, keras.layers.MaxPooling2D): # ignore GlobalAveragePooling2D
         # kernel size
         kh, kw = x.pool_size
@@ -283,10 +280,10 @@ def pararetrival(x):
 
 def GetModel(ucfg):
     ''' ucfg: user's Config for the table output: nnname, BS, BPE '''
-    
+
     nnname = ucfg['nnname']
     isconv = True
-    
+
     if nnname == 'newmodel':
         import sys
         sys.path.append("..")
@@ -294,28 +291,28 @@ def GetModel(ucfg):
         model,isconv = tfmodel()
         sys.path.remove("..")
 
-    import tensorflow.keras.applications as nn 
+    import tensorflow.keras.applications as nn
     if hasattr(nn,nnname):
         model = getattr(nn, nnname)(weights=None)
-        
+
     # efficientnet: B0-B7
     elif nnname[:-2] == 'EfficientNet':
         import tfmodels.efficientnet.tfkeras as nn
         model = getattr(nn, nnname)(weights=None)
-    
+
     # TF2.x Models:
     elif nnname == 'ncf':
         import tfmodels.ncf as nn
         name = 'ncfmodel'
         model = getattr(nn, name)(istrain=False)
         isconv = False
-    
+
     elif nnname == 'din':
         import tfmodels.din as nn
         name = 'din'
         _, model = getattr(nn, name)(item_count=63001, cate_count=801, hidden_units=128)
         isconv = False
-    
+
     # bert from bert_keras
     elif nnname == 'bert':
         isconv =False
@@ -332,7 +329,7 @@ def GetModel(ucfg):
             embed_dim=1024 # bert small
             headnum=16
             layernum=24
-            
+
             ff_dim=embed_dim*4
             token_num = 30522 # number of words from paper
             model = get_model(token_num=token_num,
@@ -347,9 +344,9 @@ def GetModel(ucfg):
             # Revise lib\site-packages\keras_bert\bert.py: line164
             # "return inputs, transformed" -> "return inputs, transformed,model"
             _,_,model = get_model(token_num=len(token_dict),embed_dim=1024,head_num=16,training=training)
-         
+
         compile_model(model)
-    
+
     if nnname =='mymodel':
         isconv = False
 
@@ -374,7 +371,7 @@ def GetModel(ucfg):
         model.add(layers.Dense(10))
 
         ## ===== end of your codes  ======
-    
+
     if True:
         g = keras.utils.model_to_dot(model,show_shapes=True)
         if nnname =='newmodel':
@@ -386,14 +383,14 @@ def ListGen(model,isconv,ucfg):
     bs=ucfg['batchsize']*ucfg['BPE']
     paralist=headgen(isconv)
     for x in model.layers: #model.layers[::-1]
-         # no batch, hxwxc
+        # no batch, hxwxc
         inp0=['']*3; inp1=['']*3; out=['']*3
         kh = ''; kw=''; sh = ''; sw=''; ph = ''; pw=''
         extin=''
         datai=''; datao=''; dataw=''
         gemm=''; vect='' ; acti =''
         ltype = str(type(x)).split(".")[-1].split("'")[0]
-        
+
         # input tensor & size
         (inp0, inp1, datai, extin) = inputgen(x,inp0,inp1,extin)
         # output tensor & size
@@ -404,7 +401,7 @@ def ListGen(model,isconv,ucfg):
         (gemm, vect, acti) = opscomputation(x,datao,inp0)
         # conv tensor
         (kh, kw, sh, sw, ph, pw) = pararetrival(x)
-       
+
         # if isinstance(x, keras.layers.Lambda):
         #     print('')
         datai = datai*bs
@@ -416,7 +413,7 @@ def ListGen(model,isconv,ucfg):
         else:
             doublerow = False
             dim=2
-            if isinstance(gemm,list): 
+            if isinstance(gemm,list):
                 if doublerow: # multihead attention: tow rows
                     new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm[0],vect[0],acti[0],extin]
                     paralist.append(new_row)
@@ -433,12 +430,10 @@ def ListGen(model,isconv,ucfg):
 
 def tableExport(paralist,nnname):
     df = pd.DataFrame(paralist)
-    paraout = './/outputs//tf//'+nnname+'.xlsx'  
+    paraout = './/outputs//tf//'+nnname+'.xlsx'
     with pd.ExcelWriter(paraout) as writer:
         df.to_excel(writer,sheet_name='details')
         # dfsum.to_excel(writer,sheet_name='summary',index=Flase)
         writer.save()
     writer.close()
-    
-    maxVal=ft.SumTable(paraout)
-    ft.FormatTable(paraout,maxVal)
+    ft.SumAndFormat(paraout, df)

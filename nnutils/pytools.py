@@ -84,7 +84,7 @@ def modelLst(ucfg):
         lS_i = [torch.Tensor([0,1,2]).to(torch.long)]*len(ln_emb) # numof indices >=1, but < ln_emb[i]
         lS_o = torch.Tensor([[0,2]]*len(ln_emb)).to(torch.long)
         y = model(x,lS_o,lS_i)
-        inst = (x,[lS_o,lS_i])        
+        inst = (x,[lS_o,lS_i])
         if isconv:
             ms=str(summary(model,inst, depth=depth,branching=2,verbose=1,ucfg=ucfg))
         else:
@@ -97,7 +97,7 @@ def modelLst(ucfg):
         model = AutoModel.from_pretrained(nnname)
         # psudeo input
         inst = torch.randint(100,2000,(1,7))
-        
+
         depth = 2
         if isconv:
             ms=str(summary(model,inst, depth=depth,branching=2,verbose=1))
@@ -108,14 +108,12 @@ def modelLst(ucfg):
     if nnname =='mymodel':
         depth=2
         isconv = False
-
         ## ===== To add a customized model ====
-        
         # model cfgs
         N, D_in, H, D_out = 64, 1000, 100, 10
-        # Create random input Tensors 
+        # Create random input Tensors
         x = torch.randn(N, D_in)
-     
+
         # define the NN model using pytorch operators.
         model = torch.nn.Sequential(
             torch.nn.Linear(D_in, H),
