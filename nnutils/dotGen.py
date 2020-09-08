@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import torch
 from torch.autograd import Variable
-
 from graphviz import Digraph
- 
+
 def make_dot(var, params=None):
     """ Produces Graphviz representation of PyTorch graph
-    Blue nodes are the Variables that require grad, orange are Tensors
+    Blue nodes are the Variables that require grad, orange ones are Tensors
     saved for backward in torch.autograd.Function
     Args:
         var: output Variable
@@ -14,7 +13,7 @@ def make_dot(var, params=None):
     if params is not None:
         assert isinstance(params.values()[0], Variable)
         param_map = {id(v): k for k, v in params.items()}
- 
+
     node_attr = dict(style='filled',
                      shape='box',
                      align='left',
@@ -23,10 +22,10 @@ def make_dot(var, params=None):
                      height='0.2')
     dot = Digraph(node_attr=node_attr, graph_attr=dict(size="12,12"))
     seen = set()
- 
+
     def size_to_str(size):
-        return '('+(', ').join(['%d' % v for v in size])+')'
- 
+        return '('+', '.join(['%d' % v for v in size])+')'
+
     def add_nodes(var):
         if var not in seen:
             if torch.is_tensor(var):
@@ -54,11 +53,7 @@ def make_dot(var, params=None):
     add_nodes(var.grad_fn)
     return dot
 
-
 def graph(y,outputname):
     g = make_dot(y)
-    g.render(outputname,cleanup=True, format='pdf')
-    
- 
-
+    g.render(outputname, cleanup=True, format='pdf')
 

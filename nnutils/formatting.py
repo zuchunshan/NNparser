@@ -3,7 +3,6 @@
 import math
 from enum import Enum, unique
 from typing import Dict, List, Sequence
-
 from .layer_info import LayerInfo
 
 
@@ -50,11 +49,11 @@ class FormattingOptions:
         """ Get the string representation of a single layer of the model. """
         info_to_use = [row_values.get(row_type, "") for row_type in self.col_names]
         # new_line = "{:<{}} ".format(layer_name, self.layer_name_width)
-        new_line = "{}, ".format(layer_name) #0615
+        new_line = f"{layer_name}, "
         for info in info_to_use:
             if isinstance(info,(list,tuple)):
                 for item in info:
-                    new_line += "{}, ".format(item)
+                    new_line += f"{item}, "
             else:
-                new_line += "{}, ".format(info)
+                new_line += f"{info}, "
         return new_line.rstrip() + "\n"

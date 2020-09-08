@@ -1,10 +1,7 @@
 """ torchsummary.py """
 
-from .layer_info import *
-
+from .model_statistics import *
 from torch.utils.hooks import RemovableHandle
-from .formatting import FormattingOptions, Verbosity
-from .model_statistics import CORRECTED_INPUT_SIZE_TYPE, ModelStatistics
 
 # Some modules do the computation themselves using parameters
 # or the parameters of children. Treat these as layers.
@@ -18,21 +15,34 @@ def summary(
     *args: Any,
     batch_dim: int = 0,
     branching: int = 1, # 0: no branch,1:branch line,2: branch
-    col_names: Sequence[str] = ("input_size","output_size","kernel_size", "stride_size", "pad_size", "num_in","num_out","num_params","gemm","vect","acti"),
+    col_names: Sequence[str] = (
+        "input_size",
+        "output_size",
+        "kernel_size",
+        "stride_size",
+        "pad_size",
+        "num_in",
+        "num_out",
+        "num_params",
+        "gemm",
+        "vect",
+        "acti"),
     col_width: int = 25,
     depth: int = 3,
     device: Optional[torch.device] = None,
     dtypes: Optional[List[torch.dtype]] = None,
     verbose: int = 1,
-    ucfg: {}, # user config: name, bs,bpe
+    ucfg: {}, # user config: name, bs, bpe
+    # ? ucfg: Optional[Dict[str,(str,int)]] = {}, # user config: name, bs, bpe
     **kwargs: Any
 ) -> ModelStatistics:
     """
     Summarize the given PyTorch model. Summarized information includes:
+        # ? Layer names
         1) output shape,
         2) kernel shape,
-        3) number of the parameters
-        4) operations (Mult-Adds)
+        3) number of parameters
+        4) number of operations (Mult-Adds)
     Arguments:
         model (nn.Module): PyTorch model to summarize
         input_data (Sequence of Sizes or Tensors):
@@ -129,7 +139,7 @@ def summary(
 
     formatting = FormattingOptions(branching, depth, verbose, col_names, col_width)
     formatting.set_layer_name_width(summary_list)
-    results = ModelStatistics(summary_list, input_size, formatting,ucfg)
+    results = ModelStatistics(summary_list, input_size, formatting, ucfg)
     return results
 
 

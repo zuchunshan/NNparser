@@ -23,7 +23,15 @@ def modelLst(ucfg):
     # produce config list of models per layer of the given nn model name
     isconv = True
     depth = 4
-    col_names_noconv=("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti")
+    col_names_noconv=(
+        "input_size",
+        "output_size",
+        "num_in",
+        "num_out",
+        "num_params",
+        "gemm",
+        "vect",
+        "acti")
 
 
     if nnname == 'newmodel':
@@ -41,8 +49,8 @@ def modelLst(ucfg):
     if hasattr(models,nnname):
         model = getattr(models, nnname)()
         x = torch.rand(1,3,224,224)
-        y = model(x)        
-        ms=str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
+        y = model(x)
+        ms = str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname=='maskrcnn':
         depth = 6
@@ -53,7 +61,6 @@ def modelLst(ucfg):
         y = y[0]
         x = [torch.rand(1,3, 800, 800)]
         ms=str(summary(model,(x,), depth=depth,branching=2,verbose=1,ucfg=ucfg))
-
 
     if nnname =='dlrm':
         depth=2
@@ -120,7 +127,6 @@ def modelLst(ucfg):
 
         y = model(x)
         ms=str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
-
 
     if nnname =='lstm':
         depth=2
@@ -190,19 +196,20 @@ def modelLst(ucfg):
         model.eval()
         y = model(x)
         ms=str(summary(model,(x,), depth=depth,branching=2,verbose=1,ucfg=ucfg))
-
-
+    # ms: model summary, row-wise data, e.g.
+    # Conv2d: 1-1,,,, 3, 224, 224, 64, 112, 112, 7, 7, 2, 2, 3, 3, 150528, 802816, 9408, 118013952, , ,
     return ms, depth, isconv,y
 
 # table gen
 def tableGen(ms,depth,isconv):
-    # produce table text lst
-    header=''
-    if depth ==0:
-        header='layer,'
+    # produce table text list, and a summary header0 (merged header)
+    header0 = 'Layer Hierarchy,' * max(depth, 1)
+    if depth == 0:
+        header = 'L0,'
     else:
+        header = ''
         for i in range(depth):
-            header += 'layer_l{},'.format(i)
+            header += 'L{},'.format(i)
 
     if isconv:
         header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
@@ -211,20 +218,22 @@ def tableGen(ms,depth,isconv):
         header += 's1,s2,' # stride
         header += 'p1,p2,' # padding
         header += 'SizeI,SizeO,SizeW,' # # of parameters
-        header += 'OpGemm,OpElem,OpActi,'
+        header += 'GEMM, ElemWise, Activation,'
         header += '\n'
+        header0 += 'Input,'*3 + 'Output,'*3 + 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
+        header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*3 +'\n'
     else: # FC style networks
         header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
         header += 'O1,O2,O3,' # output: coxhxw
         header += 'SizeI,SizeO,SizeW,' # of parameters
-        header += 'OpGemm,OpElem,OpActi,'
+        header += 'GEMM, ElemWise, Activation,'
         header += '\n'
-    ms = header + ms
-    return ms
+        header0 += 'Input,'*3 + 'Output,'*3
+        header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*3 +'\n'
+    return header0 + header + ms
 
-def tableExport(ms,nnname,y):
-    ms =ms.split('\n')
-    ms = ms[:-1] # remove the last row
+def tableExport(ms, nnname, y, draw_graph=False):
+    ms = ms.split('\n')[:-1] # remove the last row--None
     paralist=[]
     for row in ms:
         lst=row.split(',')
@@ -232,17 +241,26 @@ def tableExport(ms,nnname,y):
             lst[i] = int(lst[i]) if lst[i].strip().isnumeric() else lst[i].strip()
         paralist.append(lst)
 
-    df = pd.DataFrame(paralist)
-    df.drop(df.columns[[-1]],axis=1,inplace = True) # remove last column
-    paraout = './/outputs//torch//'+nnname+'.xlsx'
-    with pd.ExcelWriter(paraout) as writer:
-        df.to_excel(writer,sheet_name='details')
-        writer.save()
-    writer.close()
-    maxVal=ft.SumTable(paraout)
-    ft.FormatTable(paraout,maxVal)
+    # MultiIndex columns
+    headers = list(zip(*paralist[:2]))
+    df = pd.DataFrame(paralist[2:], columns=pd.MultiIndex.from_tuples(headers))
 
-    if True:
+    df.drop(df.columns[[-1]], axis=1, inplace = True) # remove last column
+    paraout = './/outputs//torch//'+nnname+'.xlsx'
+    # with pd.ExcelWriter(paraout) as writer:
+    #     df.to_excel(writer, sheet_name='Details')
+    #     writer.save()
+    df.to_excel(paraout, sheet_name='Details')
+
+    # add colors to data table
+    ft.SumAndFormat(paraout, df)
+
+    # do NOT draw densenet201 or higher as it would take tremendous amount of time
+    # densenet1xx are all allowed, although densenet169 would take about 3 hours
+    if nnname.startswith('densenet'):
+        draw_graph = False
+
+    if draw_graph:
         if isinstance(y,dict):
             for k,v in y.items():
                 if v.grad_fn:
@@ -251,14 +269,14 @@ def tableExport(ms,nnname,y):
         elif 'ssd_mo' in nnname :
             yname = ('scores','boxes' )
             for v,name in zip(y,yname):
-               outputname ='.//outputs//torch//'+nnname+'_'+name
-               dg.graph(v,outputname)
+                outputname ='.//outputs//torch//'+nnname+'_'+name
+                dg.graph(v,outputname)
         elif 'ssd_r' in nnname :
             yname = ('boxes','label','scores' )
             for v,name in zip(y,yname):
                 if v[0].grad_fn:
-                   outputname ='.//outputs//torch//'+nnname+'_'+name
-                   dg.graph(v[0],outputname)
+                    outputname ='.//outputs//torch//'+nnname+'_'+name
+                    dg.graph(v[0],outputname)
         elif 'crnn' == nnname:
             print()  # try: except CalledProcessError:
         else: # general case, plot using the first output
