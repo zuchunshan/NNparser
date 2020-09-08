@@ -34,6 +34,8 @@ class LayerInfo:
         self.gemm = []
         self.vect = []
         self.acti = []
+        # TODO add backpropagation
+        self.backprop = []
 
     def __repr__(self) -> str:
         return "{}: {}-{}".format(self.class_name, self.depth, self.depth_index)

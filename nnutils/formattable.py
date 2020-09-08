@@ -72,7 +72,6 @@ def SumSheetGen(paraout, summaryContent):
     sheet.column_dimensions['A'].width = max(25,len(summarystr))
     workbook.save(paraout)
 
-
 def FormatTable(paraout, maxVal, sheet_name='Details'):
     workbook = load_workbook(filename=paraout)
     sheet = workbook[sheet_name] #.active
@@ -81,7 +80,7 @@ def FormatTable(paraout, maxVal, sheet_name='Details'):
     # row 0: Grey bkcolor, Bold font
     for cell in list(sum(list(sheet.rows)[:2], ())):
         cell.fill = PatternFill("solid", fgColor="00C0C0C0")
-        # cell.font = Font(name='Calibri',bold=True)
+        cell.font = Font(name='Calibri',bold=True)
         if cell.value=='Output':
             so=cell.column_letter
         if cell.value=='Weight':

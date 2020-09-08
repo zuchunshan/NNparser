@@ -74,7 +74,7 @@ class ModelStatistics:
             "stride_size": layer_info.stride_size if layer_info.stride_size else ['',''],
             "gemm": layer_info.gemm if layer_info.gemm else [''],
             "vect": layer_info.vect if layer_info.vect else [''],
-            "acti":layer_info.acti if layer_info.acti else [''],
+            "acti": layer_info.acti if layer_info.acti else [''],
         } # list instead of string
 
         depth = layer_info.depth
