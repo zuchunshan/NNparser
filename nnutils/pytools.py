@@ -217,18 +217,18 @@ def tableGen(ms,depth,isconv):
         header += 'k1,k2,' # kernel
         header += 's1,s2,' # stride
         header += 'p1,p2,' # padding
-        header += 'SizeI,SizeO,SizeW,' # # of parameters
+        header += 'Input, Output, Weight,' # # of parameters
         header += 'GEMM, ElemWise, Activation,'
         header += '\n'
-        header0 += 'Input,'*3 + 'Output,'*3 + 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
+        header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3 + 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
         header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*3 +'\n'
     else: # FC style networks
         header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
         header += 'O1,O2,O3,' # output: coxhxw
-        header += 'SizeI,SizeO,SizeW,' # of parameters
+        header += 'Input, Output, Weight,' # of parameters
         header += 'GEMM, ElemWise, Activation,'
         header += '\n'
-        header0 += 'Input,'*3 + 'Output,'*3
+        header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
         header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*3 +'\n'
     return header0 + header + ms
 
@@ -247,12 +247,9 @@ def tableExport(ms, nnname, y, draw_graph=False):
 
     df.drop(df.columns[[-1]], axis=1, inplace = True) # remove last column
     paraout = './/outputs//torch//'+nnname+'.xlsx'
-    # with pd.ExcelWriter(paraout) as writer:
-    #     df.to_excel(writer, sheet_name='Details')
-    #     writer.save()
     df.to_excel(paraout, sheet_name='Details')
 
-    # add colors to data table
+    # add summary sheet and formatting
     ft.SumAndFormat(paraout, df)
 
     # do NOT draw densenet201 or higher as it would take tremendous amount of time
