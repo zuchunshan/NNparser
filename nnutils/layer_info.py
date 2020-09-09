@@ -130,7 +130,7 @@ class LayerInfo:
             else: # make a 2 elem list for unified output
                 self.stride_size = [self.module.stride,'']
 
-        if hasattr(self.module,'padding'):
+        if hasattr(self.module, 'padding'):
             if isinstance(self.module.padding,tuple):
                 self.pad_size = list(self.module.padding)
             else: # make a 2 elem list
@@ -158,7 +158,6 @@ class LayerInfo:
             # RNN modules have inner weights such as weight_ih_l0
             elif "weight" in name:
                 self.inner_layers[name] = list(param.size())
-                # ?
                 self.macs += param.nelement()
 
             if name == "bias":
@@ -176,7 +175,7 @@ class LayerInfo:
             # conduct computation for this layer based on layer type
             '''
             For reference, all tensor/array shapes are (in terms of dliang's notations):
-            input_size = [N, C, W, H]
+            input_size = [N, C, W, H] ()
             output_size = [N, K, E, F]
             kernel_size = [C, K, R, S]
             with a few exceptions such as [K] as kernel_size

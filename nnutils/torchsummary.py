@@ -140,6 +140,7 @@ def summary(
 
     formatting = FormattingOptions(branching, depth, verbose, col_names, col_width)
     formatting.set_layer_name_width(summary_list)
+    # !
     results = ModelStatistics(summary_list, input_size, formatting, ucfg)
     return results
 
@@ -226,11 +227,13 @@ def apply_hooks(
     def hook(module: nn.Module, inputs: Any, outputs: Any) -> None:
         """ Create a LayerInfo object to aggregate information about that layer. """
         idx[curr_depth] = idx.get(curr_depth, 0) + 1
+        # ! info here extract LayerInfo from that layer
         info = LayerInfo(module, curr_depth, idx[curr_depth])
         info.calculate_input_size(inputs, batch_dim)
         del inputs
         info.calculate_output_size(outputs, batch_dim)
         info.calculate_num_params()
+        # ! two important steps
         info.check_recursive(summary_list)
         summary_list.append(info)
 
