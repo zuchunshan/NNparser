@@ -16,6 +16,7 @@ class LayerInfo:
         # Identifying information
         self.layer_id = id(module)
         self.module = module
+        # __class__ is of format "<class 'torchvision.models.xxx.xxx'>" hence the double split
         self.class_name = str(module.__class__).split(".")[-1].split("'")[0]
         self.inner_layers = {}  # type: Dict[str, List[int]]
         self.depth = depth
@@ -137,6 +138,7 @@ class LayerInfo:
                 self.pad_size = [self.module.padding,'']
 
         """ Set num_params using the module's parameters. Generator """
+        # ! redundantly, this appears to be traversing all parameters instead of one layer
         for name, param in self.module.named_parameters():
             self.num_params += param.nelement()
             self.trainable &= param.requires_grad
@@ -175,10 +177,10 @@ class LayerInfo:
             # conduct computation for this layer based on layer type
             '''
             For reference, all tensor/array shapes are (in terms of dliang's notations):
-            input_size = [N, C, W, H] ()
-            output_size = [N, K, E, F]
-            kernel_size = [C, K, R, S]
-            with a few exceptions such as [K] as kernel_size
+            input_size = [N, C, W, H] (batch size, input channel, input w, input h)
+            output_size = [N, K, E, F] (batch size, output channel, output w, output h)
+            kernel_size = [C, K, R, S] (input channel, output channel, kernel w, kernel h)
+            # ? pooling/relu/sigmoid = [K] (output channel)
             '''
             if "Conv" in self.class_name:
                 units = int(np.prod(self.output_size[1:]))
@@ -210,14 +212,25 @@ class LayerInfo:
                 self.backprop = self.acti
             # TODO add backpropagation for RNN
             elif "LSTM" == self.class_name:
-                self.acti = self.module.num_layers * self.module.hidden_size * 5
+                '''
+                Forget gate: F = acti(weightF*[h,x]+bF)
+                Input gate: I = acti(weightI*[h,x]+bI)
+                Intermediate status: C = acti(weightC*[h,x]+bC)
+                Status update: S = F*S + I*C
+                Output gate: O = acti(weightO*[h,x]+bO)
+                Hidden status: h = O*acti(S)
+                '''
+                self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
                 self.gemm = self.macs + 8 * ub * self.module.num_layers * self.module.hidden_size
+                self.backprop = 0
             elif "GRU" == self.class_name:
                 self.acti = self.module.num_layers * self.module.hidden_size * 3
                 self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
+                self.backprop = 0
             else:
+                # check backprop
                 self.gemm = self.macs
-                self.backprop = self.macs
+                self.backprop = 0
 
     def check_recursive(self, summary_list: "List[LayerInfo]") -> None:
         """ if the current module is already-used, mark as (recursive).

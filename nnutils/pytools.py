@@ -31,7 +31,9 @@ def modelLst(ucfg):
         "num_params",
         "gemm",
         "vect",
-        "acti")
+        "acti",
+        # add backprop
+        'backprop')
 
 
     if nnname == 'newmodel':
@@ -133,7 +135,7 @@ def modelLst(ucfg):
         x=torch.rand(2,1).to(torch.long)
         model = LSTMNet()
         y = model(x)
-        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti")
+        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti",'backprop')
         ms=str(summary(model,x, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname =='gru':
@@ -143,7 +145,7 @@ def modelLst(ucfg):
         x=torch.rand(2,1).to(torch.long)
         model = GRUNet()
         y = model(x)
-        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti")
+        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti",'backprop')
         ms=str(summary(model,x, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname == 'ssd_mobilenet':
@@ -194,8 +196,6 @@ def modelLst(ucfg):
         model.eval()
         y = model(x)
         ms=str(summary(model,(x,), depth=depth,branching=2,verbose=1,ucfg=ucfg))
-    # ms: model summary, row-wise data, e.g.
-    # Conv2d: 1-1,,,, 3, 224, 224, 64, 112, 112, 7, 7, 2, 2, 3, 3, 150528, 802816, 9408, 118013952, , ,
     return ms, depth, isconv,y
 
 # table gen
