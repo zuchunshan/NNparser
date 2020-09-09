@@ -30,7 +30,9 @@ class ModelStatistics:
         self.trainable_params = 0
         self.total_output = 0
         self.total_mult_adds = 0
-        self.bs = ucfg['batchsize'] * ucfg['BPE'] # input batch size and BPE
+        # input batch size and BPE, captured from command line
+        self.bs = ucfg['batchsize']
+        self.bpe = ucfg['BPE']
 
 
     @staticmethod
@@ -65,9 +67,9 @@ class ModelStatistics:
         row_values = {
             "input_size": layer_info.input_size[1:] if len(layer_info.input_size)==4 else layer_info.input_size[1:]+(['']*(4-len(layer_info.input_size))), # multiple in?
             "output_size": layer_info.output_size[1:] if len(layer_info.output_size)==4 else layer_info.output_size[1:]+(['']*(4-len(layer_info.output_size))),
-            "num_in": np.prod(layer_info.input_size[1:])*self.bs,
-            "num_out": np.prod(layer_info.output_size[1:])*self.bs,
-            "num_params": layer_info.num_params*self.bs if layer_info.num_params else '',
+            "num_in": np.prod(layer_info.input_size[1:]) * self.bs * self.bpe,
+            "num_out": np.prod(layer_info.output_size[1:]) * self.bs * self.bpe,
+            "num_params": layer_info.num_params * self.bs * self.bpe if layer_info.num_params else '',
             "mult_adds": layer_info.macs if layer_info.macs else '',
             "kernel_size": layer_info.kernel_size[2:] if len(layer_info.kernel_size)>2 else ['',''],
             "pad_size": layer_info.pad_size if layer_info.pad_size else ['',''],
@@ -75,6 +77,7 @@ class ModelStatistics:
             "gemm": layer_info.gemm if layer_info.gemm else [''],
             "vect": layer_info.vect if layer_info.vect else [''],
             "acti": layer_info.acti if layer_info.acti else [''],
+            'backprop': layer_info.backprop if layer_info.backprop else ['']
         } # list instead of string
 
         depth = layer_info.depth

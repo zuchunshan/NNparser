@@ -31,10 +31,10 @@ class LayerInfo:
         self.pad_size = []
         self.num_params = 0
         self.macs = 0
+        # added
         self.gemm = []
         self.vect = []
         self.acti = []
-        # TODO add backpropagation
         self.backprop = []
 
     def __repr__(self) -> str:
@@ -162,7 +162,7 @@ class LayerInfo:
                 self.macs += param.nelement()
 
             if name == "bias":
-                ub=True
+                ub = True
 
         # LL
         # if this layer has children, i.e. this is sequential layer, set to 0 to avoid duplicate counting
@@ -171,35 +171,54 @@ class LayerInfo:
             self.input_size = [0]*4
             self.output_size = [0]*4
             self.gemm = 0
+            self.backprop = 0
         else:
             # conduct computation for this layer based on layer type
+            '''
+            For reference, all tensor/array shapes are (in terms of dliang's notations):
+            input_size = [N, C, W, H]
+            output_size = [N, K, E, F]
+            kernel_size = [C, K, R, S]
+            with a few exceptions such as [K] as kernel_size
+            '''
             if "Conv" in self.class_name:
                 units = int(np.prod(self.output_size[1:]))
-                self.gemm = int(np.prod(self.output_size[2:])) *int(np.prod(self.kernel_size))+units*ub
+                self.backprop = int(np.prod(self.input_size[2:])) * int(np.prod(self.kernel_size))
+                # ? different than dliang's formula
+                # self.gemm = int(np.prod(self.output_size[2:])) * int(np.prod(self.kernel_size)) + units * ub
+                self.gemm = self.backprop + units * ub
             elif "BatchNorm2d" in self.class_name:
-                self.vect = int(np.prod(self.output_size[1:]))*2 # 1 elem* 1 elem+
+                self.vect = int(np.prod(self.output_size[1:])) * 2 # 1 elem* 1 elem+
+                self.backprop = self.vect
             elif "ReLU" in self.class_name:
                 self.acti = int(np.prod(self.output_size[1:]))
+                self.backprop = self.acti
+            # ? 'AveragePool2d'
             elif "MaxPool2d" in self.class_name:
                 ksize=self.module.kernel_size
                 csize=self.output_size[1]
-                self.kernel_size=(csize,csize,ksize,ksize)
-                self.vect = int(np.prod(self.output_size[1:]))*int(np.prod(self.kernel_size[2:])-1)
+                self.kernel_size = (csize,csize,ksize,ksize)
+                self.vect = int(np.prod(self.output_size[1:])) * int(np.prod(self.kernel_size[2:])-1)
+                self.backprop = int(np.prod(self.output_size[2:])) * int(np.prod(self.input_size[1:]))
             elif "Linear" in self.class_name:
                 # lens = self.input_size[1]
                 # units= self.output_size[1]
-                # self.gemm = lens*units+ units*ub
+                # self.gemm = lens * units+ units * ub
                 self.gemm = self.macs
+                self.backprop = self.macs
             elif "Sigmoid" in self.class_name:
                 self.acti = self.output_size[1]
+                self.backprop = self.acti
+            # TODO add backpropagation for RNN
             elif "LSTM" == self.class_name:
-                self.acti = self.module.num_layers*self.module.hidden_size*5
-                self.gemm = self.macs+8*ub*self.module.num_layers*self.module.hidden_size
+                self.acti = self.module.num_layers * self.module.hidden_size * 5
+                self.gemm = self.macs + 8 * ub * self.module.num_layers * self.module.hidden_size
             elif "GRU" == self.class_name:
-                self.acti = self.module.num_layers*self.module.hidden_size*3
-                self.gemm = self.macs+6*ub*self.module.num_layers*self.module.hidden_size
+                self.acti = self.module.num_layers * self.module.hidden_size * 3
+                self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
             else:
                 self.gemm = self.macs
+                self.backprop = self.macs
 
     def check_recursive(self, summary_list: "List[LayerInfo]") -> None:
         """ if the current module is already-used, mark as (recursive).

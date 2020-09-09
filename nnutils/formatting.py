@@ -27,7 +27,10 @@ class FormattingOptions:
         self.use_branching = use_branching
         self.max_depth = max_depth
         self.verbose = verbose
+        # col_names is a Sequence, e.g. tuple, of str
+        # i.e. input_size, kernel_size, pad_size, gemm, vect, acti, etc.
         self.col_names = col_names
+        # col_width controls Excel cell width
         self.col_width = col_width
         self.layer_name_width = 40
 
@@ -47,6 +50,7 @@ class FormattingOptions:
 
     def format_row(self, layer_name: str, row_values: Dict[str, str]) -> str:
         """ Get the string representation of a single layer of the model. """
+        # based on the order of self.col_names
         info_to_use = [row_values.get(row_type, "") for row_type in self.col_names]
         # new_line = "{:<{}} ".format(layer_name, self.layer_name_width)
         new_line = f"{layer_name}, "

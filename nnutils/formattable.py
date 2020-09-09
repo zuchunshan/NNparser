@@ -75,7 +75,8 @@ def SumSheetGen(paraout, summaryContent):
 def FormatTable(paraout, maxVal, sheet_name='Details'):
     workbook = load_workbook(filename=paraout)
     sheet = workbook[sheet_name] #.active
-    sheet.column_dimensions['B'].width = 15
+    sheet.column_dimensions['A'].width = 1
+    sheet.column_dimensions['B'].width = 12
 
     # row 0: Grey bkcolor, Bold font
     for cell in list(sum(list(sheet.rows)[:2], ())):
@@ -103,7 +104,7 @@ def FormatTable(paraout, maxVal, sheet_name='Details'):
     myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[2])], stopIfTrue=True, fill=background)
     sheet.conditional_formatting.add(og+'{}:'.format(sheet.min_row)+og+'{}'.format(sheet.max_row), myrule)
 
-    print(sheet.merged_cells)
+    # print(sheet.merged_cells)
     workbook.save(paraout)
 
 def GlobalFormat(filename):

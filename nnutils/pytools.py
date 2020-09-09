@@ -201,33 +201,24 @@ def modelLst(ucfg):
 # table gen
 def tableGen(ms,depth,isconv):
     # produce table text list, and a summary header0 (merged header)
-    header0 = 'Layer Hierarchy,' * max(depth, 1)
-    if depth == 0:
-        header = 'L0,'
-    else:
-        header = ''
-        for i in range(depth):
-            header += 'L{},'.format(i)
+    layer = max(depth, 1)
+    header0 = 'Layer Hierarchy,' * layer
+    header = ''
+    for i in range(layer):
+        header += 'L{},'.format(i)
 
+    header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
+    header += 'O1,O2,O3,' # output: coxhxw
+    header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
     if isconv:
-        header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
-        header += 'O1,O2,O3,' # output: coxhxw
         header += 'k1,k2,' # kernel
         header += 's1,s2,' # stride
         header += 'p1,p2,' # padding
-        header += 'Input, Output, Weight,' # # of parameters
-        header += 'GEMM, ElemWise, Activation,'
-        header += '\n'
-        header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3 + 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
-        header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*3 +'\n'
-    else: # FC style networks
-        header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
-        header += 'O1,O2,O3,' # output: coxhxw
-        header += 'Input, Output, Weight,' # of parameters
-        header += 'GEMM, ElemWise, Activation,'
-        header += '\n'
-        header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
-        header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*3 +'\n'
+        header0 += 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
+    # else: # FC style networks
+    header += 'Input, Output, Weight,' # of parameters
+    header += 'GEMM, ElemWise, Activation, BackProp,\n'
+    header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*4 +'\n'
     return header0 + header + ms
 
 def tableExport(ms, nnname, y, draw_graph=False):

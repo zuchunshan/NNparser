@@ -26,7 +26,8 @@ def summary(
         "num_params",
         "gemm",
         "vect",
-        "acti"),
+        "acti",
+        "backprop"),
     col_width: int = 25,
     depth: int = 3,
     device: Optional[torch.device] = None,
@@ -209,7 +210,7 @@ def get_correct_input_sizes(input_size: INPUT_SIZE_TYPE) -> CORRECTED_INPUT_SIZE
         return list(input_size)
     return [input_size]
 
-
+# batch size is 1 regardless of user input, it will only take effect when generating xlsx file
 def apply_hooks(
     module: nn.Module,
     orig_model: nn.Module,
