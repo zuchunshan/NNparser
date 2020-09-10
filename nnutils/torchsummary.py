@@ -8,7 +8,6 @@ from torch.utils.hooks import RemovableHandle
 LAYER_MODULES = (torch.nn.MultiheadAttention,)
 INPUT_SIZE_TYPE = Sequence[Union[int, Sequence[Any], torch.Size]]
 
-
 def summary(
     model: nn.Module,
     input_data: Union[torch.Tensor, torch.Size, Sequence[torch.Tensor], INPUT_SIZE_TYPE],
@@ -28,7 +27,9 @@ def summary(
         "vect",
         "acti",
         # add backprop
-        "backprop"),
+        "gemmB",
+        "vectB",
+        "actiB",),
     col_width: int = 25,
     depth: int = 3,
     device: Optional[torch.device] = None,
@@ -73,7 +74,8 @@ def summary(
     summary_list = []  # type: List[LayerInfo]
     hooks = []  # type: List[RemovableHandle]
     idx = {}  # type: Dict[int, int]
-    # * here hooks is no longer empty
+
+    # here recursively calls apply_hooks
     apply_hooks(model, model, depth, summary_list, hooks, idx, batch_dim)
 
     if device is None:
@@ -224,8 +226,11 @@ def apply_hooks(
     batch_dim: int,
     curr_depth: int = 0,
 ) -> None:
-    """ Recursively adds hooks to all layers of the model. """
-
+    '''
+    If input_data is provided, recursively adds hooks to all layers of the model.
+    Else, fills summary_list with layer info without computing a forward pass through the network.
+    '''
+    # Fallback is used if the layer's hook is never called, in Module Lists, for example.
     def hook(module: nn.Module, inputs: Any, outputs: Any) -> None:
         """ Create a LayerInfo object to aggregate information about that layer. """
         idx[curr_depth] = idx.get(curr_depth, 0) + 1
@@ -235,14 +240,15 @@ def apply_hooks(
         del inputs
         info.calculate_output_size(outputs, batch_dim)
         info.calculate_num_params()
-        # ! two important steps
+        # * pass the info to external summary_list (in summary func scope)
         info.check_recursive(summary_list)
-        summary_list.append(info)
+        summary_list.append(info) # contains info of is_recursive in that layer
 
-    # if 'ModuleList' in str(type(module)):
-    #     print(module._get_name())
     submodules = [m for m in module.modules() if m is not orig_model]
 
+    # module is not orig_model OR
+    # module is LAYER_MODULES OR
+    # submodules is empty (all modules are orig_model)
     if module != orig_model or isinstance(module, LAYER_MODULES) or not submodules:
         hooks.append(module.register_forward_hook(hook))
 

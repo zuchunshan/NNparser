@@ -33,16 +33,17 @@ def SumAndFormat(paraout, df=None):
 
     sizeO = df.loc[:,('Size of Parameters','Output')].apply(str2num)
     sizeW = df.loc[:,('Size of Parameters','Weight')].apply(str2num)
-    opGEMM = df.loc[:,('Operation Summary','GEMM')].apply(str2num)
+    opGemmF = df.loc[:,('Forward Ops','GEMM')].apply(str2num)
+    opGemmB = df.loc[:,('Backward Ops','GEMM')].apply(str2num)
 
     # max size and ops:
-
     SumSheetGen(
         paraout,
         [
             ['Total Activations(MB):',sizeO.sum()/(1000**2)],
             ['Total Weights(MB):',sizeW.sum()/(1000**2)],
-            ['Total GEMM (G_ops):',opGEMM.sum()/(1000**3)]
+            ['Total Forward GEMM (G_ops):',opGemmF.sum()/(1000**3)],
+            ['Total Backward GEMM (G_ops):',opGemmB.sum()/(1000**3)],
         ]
     )
     # set global font etc.
@@ -52,7 +53,8 @@ def SumAndFormat(paraout, df=None):
         [
             sizeO.max(),
             sizeW.max(),
-            opGEMM.max()
+            opGemmF.max(),
+            opGemmB.max(),
         ]
     )
 
@@ -74,35 +76,42 @@ def SumSheetGen(paraout, summaryContent):
 
 def FormatTable(paraout, maxVal, sheet_name='Details'):
     workbook = load_workbook(filename=paraout)
-    sheet = workbook[sheet_name] #.active
+    sheet = workbook[sheet_name]
     sheet.column_dimensions['A'].width = 1
     sheet.column_dimensions['B'].width = 12
 
-    # row 0: Grey bkcolor, Bold font
     for cell in list(sum(list(sheet.rows)[:2], ())):
         cell.fill = PatternFill("solid", fgColor="00C0C0C0")
         cell.font = Font(name='Calibri',bold=True)
         if cell.value=='Output':
-            so=cell.column_letter
+            so = cell.column_letter
         if cell.value=='Weight':
-            sw=cell.column_letter
+            sw = cell.column_letter
         if cell.value=='GEMM':
-            og=cell.column_letter
+            if sheet.cell(cell.row-1, cell.column).value=='Forward Ops':
+                fg = cell.column_letter
+            else:
+                bg = cell.column_letter
 
-    # Max activation row with red
+    # Max output size row with red
     background = PatternFill(bgColor="00FF0000")
     myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[0])], stopIfTrue=True, fill=background)
     sheet.conditional_formatting.add(so+'{}:'.format(sheet.min_row)+so+'{}'.format(sheet.max_row), myrule)
 
-    # Max activation row with pink
+    # Max weight size row with pink
     background = PatternFill(bgColor="00FF00FF")
     myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[1])], stopIfTrue=True, fill=background)
     sheet.conditional_formatting.add(sw+'{}:'.format(sheet.min_row)+sw+'{}'.format(sheet.max_row), myrule)
 
-    #  Max Ops Gemm row with green
+    #  Max Forward Ops Gemm row with green
     background = PatternFill(bgColor="0000FF00")
     myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[2])], stopIfTrue=True, fill=background)
-    sheet.conditional_formatting.add(og+'{}:'.format(sheet.min_row)+og+'{}'.format(sheet.max_row), myrule)
+    sheet.conditional_formatting.add(fg+'{}:'.format(sheet.min_row)+fg+'{}'.format(sheet.max_row), myrule)
+
+    #  Max Backward Ops Gemm row with yellow
+    background = PatternFill(bgColor="00FFFF00")
+    myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[3])], stopIfTrue=True, fill=background)
+    sheet.conditional_formatting.add(bg+'{}:'.format(sheet.min_row)+bg+'{}'.format(sheet.max_row), myrule)
 
     # print(sheet.merged_cells)
     workbook.save(paraout)

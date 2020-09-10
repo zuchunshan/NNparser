@@ -36,22 +36,19 @@ class LayerInfo:
         self.gemm = []
         self.vect = []
         self.acti = []
-        self.backprop = []
+        self.gemmB = []
+        self.vectB = []
+        self.actiB = []
 
     def __repr__(self) -> str:
         return "{}: {}-{}".format(self.class_name, self.depth, self.depth_index)
 
     def calculate_input_size(self, inputs: DETECTED_INPUT_TYPES, batch_dim: int) -> None:
         """ Set input_size using the model's inputs. """
-        # if "LastLevelMaxPool" in self.class_name:
-        #     print('multiple input List') #(tensor list,tensor list,list str)
-        # if "MultiScaleRoIAlign" in self.class_name: #AnchorGenerator
-        #     print('ImageList Gen')
-        if isinstance(inputs, (list, tuple)): # union
+        if isinstance(inputs, (list, tuple)):
             try:
-                self.input_size = list(inputs[0].size()) # prod of h,w,c etc.
+                self.input_size = list(inputs[0].size())
             except AttributeError:
-                # pack_padded_seq and pad_packed_seq store feature into data attribute
                 try:
                     size = list(inputs[0].data.size())
                 except AttributeError:
@@ -67,7 +64,6 @@ class LayerInfo:
                 self.input_size = size[:batch_dim] + [-1] + size[batch_dim + 1 :]
 
         elif isinstance(inputs, dict):
-            # TODO different form?
             for _, input in inputs.items():
                 size = list(input.size())
                 size_with_batch = size[:batch_dim] + [-1] + size[batch_dim + 1 :]
@@ -84,15 +80,10 @@ class LayerInfo:
 
     def calculate_output_size(self, outputs: DETECTED_OUTPUT_TYPES, batch_dim: int) -> None:
         """ Set output_size using the model's outputs. """
-        # if "LastLevelMaxPool" in self.class_name:
-        #     print('multiple output Lists') #(tensor list,list str)
-        # if "GeneralizedRCNNTransform" in self.class_name:
-        #     print('ImageList Gen')
         if isinstance(outputs, (list, tuple)):
             try:
                 self.output_size = list(outputs[0].size())
             except AttributeError:
-                # pack_padded_seq and pad_packed_seq store feature into data attribute
                 try:
                     size = list(outputs[0].data.size())
                 except AttributeError:
@@ -172,7 +163,6 @@ class LayerInfo:
             self.input_size = [0]*4
             self.output_size = [0]*4
             self.gemm = 0
-            self.backprop = 0
         else:
             # conduct computation for this layer based on layer type
             '''
@@ -184,33 +174,30 @@ class LayerInfo:
             '''
             if "Conv" in self.class_name:
                 units = int(np.prod(self.output_size[1:]))
-                self.backprop = int(np.prod(self.input_size[2:])) * int(np.prod(self.kernel_size))
-                # ? different than dliang's formula
-                # self.gemm = int(np.prod(self.output_size[2:])) * int(np.prod(self.kernel_size)) + units * ub
-                self.gemm = self.backprop + units * ub
+                self.gemm = int(np.prod(self.output_size[2:])) * int(np.prod(self.kernel_size)) + units * ub
+                self.gemmB = int(np.prod(self.input_size[2:])) * int(np.prod(self.kernel_size))
             elif "BatchNorm2d" in self.class_name:
                 self.vect = int(np.prod(self.output_size[1:])) * 2 # 1 elem* 1 elem+
-                self.backprop = self.vect
+                self.vectB = self.vect
             elif "ReLU" in self.class_name:
                 self.acti = int(np.prod(self.output_size[1:]))
-                self.backprop = self.acti
+                self.actiB = self.acti
             # ? 'AveragePool2d'
             elif "MaxPool2d" in self.class_name:
                 ksize=self.module.kernel_size
                 csize=self.output_size[1]
                 self.kernel_size = (csize,csize,ksize,ksize)
                 self.vect = int(np.prod(self.output_size[1:])) * int(np.prod(self.kernel_size[2:])-1)
-                self.backprop = int(np.prod(self.output_size[2:])) * int(np.prod(self.input_size[1:]))
+                self.vectB = int(np.prod(self.output_size[2:])) * int(np.prod(self.input_size[1:]))
             elif "Linear" in self.class_name:
                 # lens = self.input_size[1]
                 # units= self.output_size[1]
                 # self.gemm = lens * units+ units * ub
                 self.gemm = self.macs
-                self.backprop = self.macs
+                self.gemmB = self.macs
             elif "Sigmoid" in self.class_name:
                 self.acti = self.output_size[1]
-                self.backprop = self.acti
-            # TODO add backpropagation for RNN
+                self.actiB = self.acti
             elif "LSTM" == self.class_name:
                 '''
                 Forget gate: F = acti(weightF*[h,x]+bF)
@@ -221,16 +208,17 @@ class LayerInfo:
                 Hidden status: h = O*acti(S)
                 '''
                 self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
-                self.gemm = self.macs + 8 * ub * self.module.num_layers * self.module.hidden_size
-                self.backprop = 0
+                self.gemm = self.macs + 2 * 4 * ub * self.module.num_layers * self.module.hidden_size
+                self.gemmB = self.gemm
+                self.actiB = self.acti
             elif "GRU" == self.class_name:
                 self.acti = self.module.num_layers * self.module.hidden_size * 3
                 self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
-                self.backprop = 0
+                self.gemmB = self.gemm
+                self.actiB = self.acti
             else:
-                # check backprop
                 self.gemm = self.macs
-                self.backprop = 0
+                self.gemmB = self.macs
 
     def check_recursive(self, summary_list: "List[LayerInfo]") -> None:
         """ if the current module is already-used, mark as (recursive).

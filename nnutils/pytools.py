@@ -207,23 +207,21 @@ def tableGen(ms,depth,isconv):
     for i in range(layer):
         header += 'L{},'.format(i)
 
-    header += 'Channel, Height, Width,'
-    header += 'Channel, Height, Width,'
+    header += 'Channel, Height, Width,' * 2
+    header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
     # header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
     # header += 'O1,O2,O3,' # output: coxhxw
-    header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
     if isconv:
         # header += 'k1,k2,' # kernel
         # header += 's1,s2,' # stride
         # header += 'p1,p2,' # padding
         header += 'Height, Width,' # kernel
-        header += 'X, Y,' # stride
-        header += 'X, Y,' # padding
+        header += 'X, Y,' * 2 # stride and padding
         header0 += 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
     # else: # FC style networks
     header += 'Input, Output, Weight,' # of parameters
-    header += 'GEMM, ElemWise, Activation, BackProp,\n'
-    header0 += 'Size of Parameters,'*3 + 'Operation Summary,'*4 +'\n'
+    header += 'GEMM, ElemWise, Activation,' * 2 + '\n'
+    header0 += 'Size of Parameters,'*3 + 'Forward Ops,' * 3 + 'Backward Ops,' * 3 +'\n'
     return header0 + header + ms
 
 def tableExport(ms, nnname, y, draw_graph=False):
