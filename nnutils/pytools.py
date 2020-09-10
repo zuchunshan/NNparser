@@ -207,13 +207,18 @@ def tableGen(ms,depth,isconv):
     for i in range(layer):
         header += 'L{},'.format(i)
 
-    header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
-    header += 'O1,O2,O3,' # output: coxhxw
+    header += 'Channel, Height, Width,'
+    header += 'Channel, Height, Width,'
+    # header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
+    # header += 'O1,O2,O3,' # output: coxhxw
     header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
     if isconv:
-        header += 'k1,k2,' # kernel
-        header += 's1,s2,' # stride
-        header += 'p1,p2,' # padding
+        # header += 'k1,k2,' # kernel
+        # header += 's1,s2,' # stride
+        # header += 'p1,p2,' # padding
+        header += 'Height, Width,' # kernel
+        header += 'X, Y,' # stride
+        header += 'X, Y,' # padding
         header0 += 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
     # else: # FC style networks
     header += 'Input, Output, Weight,' # of parameters

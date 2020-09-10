@@ -177,9 +177,9 @@ class LayerInfo:
             # conduct computation for this layer based on layer type
             '''
             For reference, all tensor/array shapes are (in terms of dliang's notations):
-            input_size = [N, C, W, H] (batch size, input channel, input w, input h)
-            output_size = [N, K, E, F] (batch size, output channel, output w, output h)
-            kernel_size = [C, K, R, S] (input channel, output channel, kernel w, kernel h)
+            input_size = [N, C, H, W] (batch size, input channel, input h, input w)
+            output_size = [N, K, E, F] (batch size, output channel, output h, output w)
+            kernel_size = [C, K, R, S] (input channel, output channel, kernel h, kernel w)
             # ? pooling/relu/sigmoid = [K] (output channel)
             '''
             if "Conv" in self.class_name:

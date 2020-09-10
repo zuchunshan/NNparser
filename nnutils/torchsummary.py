@@ -27,6 +27,7 @@ def summary(
         "gemm",
         "vect",
         "acti",
+        # add backprop
         "backprop"),
     col_width: int = 25,
     depth: int = 3,
@@ -72,6 +73,7 @@ def summary(
     summary_list = []  # type: List[LayerInfo]
     hooks = []  # type: List[RemovableHandle]
     idx = {}  # type: Dict[int, int]
+    # * here hooks is no longer empty
     apply_hooks(model, model, depth, summary_list, hooks, idx, batch_dim)
 
     if device is None:
