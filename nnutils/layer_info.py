@@ -146,6 +146,7 @@ class LayerInfo:
                 if "Conv" in self.class_name:
                     self.macs += (param.nelement() * int(np.prod(self.output_size[2:])))
                 else:
+                    # ! same as num_params?
                     self.macs += param.nelement()
 
             # RNN modules have inner weights such as weight_ih_l0
@@ -197,7 +198,13 @@ class LayerInfo:
                 self.gemmB = self.macs
             elif "Sigmoid" in self.class_name:
                 self.acti = self.output_size[1]
+                # y = 1(1+exp(-x)), y' = y(1-y), pointwise
                 self.actiB = self.acti
+            # elif 'Tanh' in self.class_name:
+            #     # y = (exp(x)-exp(-x))/(exp(x)+exp(-x))
+            #     # y' = 1 - y^2
+            #     self.acti = self.output_size[1]
+            #     self.actiB = self.acti
             elif "LSTM" == self.class_name:
                 '''
                 Forget gate: F = acti(weightF*[h,x]+bF)
@@ -206,16 +213,32 @@ class LayerInfo:
                 Status update: S = F*S + I*C
                 Output gate: O = acti(weightO*[h,x]+bO)
                 Hidden status: h = O*acti(S)
+
+                Inputs:
+                    - input size: size of x (seq_len, batch, num_directions * hidden_size)
+                    - hidden size: size of h (num_layers * num_directions, batch, hidden_size)
+                    - cell state: (num_layers * num_directions, batch, hidden_size)
+                Outputs:
+                    - output size: size of x (seq_len, batch, input_size)
+                    - hidden size: size of h (num_layers * num_directions, batch, hidden_size)
+                    - cell state: (num_layers * num_directions, batch, hidden_size)
                 '''
                 self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
                 self.gemm = self.macs + 2 * 4 * ub * self.module.num_layers * self.module.hidden_size
-                self.gemmB = self.gemm
+                self.vect = self.module.num_layers * self.module.hidden_size * 4 # 4 pointwise ops (exclude acti)
+                # backward
                 self.actiB = self.acti
+                self.gemmB = self.gemm
+                self.vectB = self.acti * 4 + self.vect * 5 * ub # 4 subtract, 6 multi, 10 add
             elif "GRU" == self.class_name:
-                self.acti = self.module.num_layers * self.module.hidden_size * 3
+                # forward
                 self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
-                self.gemmB = self.gemm
+                self.acti = self.module.num_layers * self.module.hidden_size * 3
+                self.vect = self.acti
+                # backward
                 self.actiB = self.acti
+                self.vectB = self.vect * 2 + self.vect * 5 * ub
+                self.gemmB = self.gemm
             else:
                 self.gemm = self.macs
                 self.gemmB = self.macs

@@ -33,7 +33,9 @@ def modelLst(ucfg):
         "vect",
         "acti",
         # add backprop
-        'backprop')
+        "gemmB",
+        "vectB",
+        "actiB",)
 
 
     if nnname == 'newmodel':
@@ -135,7 +137,7 @@ def modelLst(ucfg):
         x=torch.rand(2,1).to(torch.long)
         model = LSTMNet()
         y = model(x)
-        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti",'backprop')
+        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti",'gemmB','vectB','actiB')
         ms=str(summary(model,x, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname =='gru':
@@ -145,7 +147,7 @@ def modelLst(ucfg):
         x=torch.rand(2,1).to(torch.long)
         model = GRUNet()
         y = model(x)
-        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti",'backprop')
+        col_names =("input_size","output_size", "num_in","num_out","num_params","gemm","vect","acti",'gemmB','vectB','actiB')
         ms=str(summary(model,x, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname == 'ssd_mobilenet':
@@ -173,7 +175,7 @@ def modelLst(ucfg):
     if nnname == 'gnmt':
         depth = 4
         isconv = False
-        col_names =col_names_noconv
+        col_names = col_names_noconv
         from torchmodels.seq2seq.models.gnmt import GNMT
         model_config = {'hidden_size': 1024,
                     'num_layers': 4,
@@ -196,7 +198,7 @@ def modelLst(ucfg):
         model.eval()
         y = model(x)
         ms=str(summary(model,(x,), depth=depth,branching=2,verbose=1,ucfg=ucfg))
-    return ms, depth, isconv,y
+    return ms, depth, isconv, y
 
 # table gen
 def tableGen(ms,depth,isconv):
@@ -209,12 +211,7 @@ def tableGen(ms,depth,isconv):
 
     header += 'Channel, Height, Width,' * 2
     header0 += 'Input Dimension,'*3 + 'Output Dimension,'*3
-    # header += 'I1,I2,I3,' # input: cinxhxw; multiple input in model statistics
-    # header += 'O1,O2,O3,' # output: coxhxw
     if isconv:
-        # header += 'k1,k2,' # kernel
-        # header += 's1,s2,' # stride
-        # header += 'p1,p2,' # padding
         header += 'Height, Width,' # kernel
         header += 'X, Y,' * 2 # stride and padding
         header0 += 'Kernel,'*2 + 'Stride,'*2 +'Padding,'*2
@@ -224,7 +221,7 @@ def tableGen(ms,depth,isconv):
     header0 += 'Size of Parameters,'*3 + 'Forward Ops,' * 3 + 'Backward Ops,' * 3 +'\n'
     return header0 + header + ms
 
-def tableExport(ms, nnname, y, draw_graph=False):
+def tableExport(ms, nnname, y, draw_graph=True):
     ms = ms.split('\n')[:-1] # remove the last row--None
     paralist=[]
     for row in ms:
@@ -235,6 +232,7 @@ def tableExport(ms, nnname, y, draw_graph=False):
 
     # MultiIndex columns
     headers = list(zip(*paralist[:2]))
+
     df = pd.DataFrame(paralist[2:], columns=pd.MultiIndex.from_tuples(headers))
 
     df.drop(df.columns[[-1]], axis=1, inplace = True) # remove last column

@@ -1,22 +1,13 @@
 # -*- coding: utf-8 -*-
-# @Time    : 2019/7/2 8:43
-# @Author  : skydm
-# @Email   : wzwei1636@163.com
-# @File    : model.py
-# @Software: PyCharm
-
 import random
 import numpy as np
 import tensorflow as tf
 import tensorflow.python.keras as keras
 import tensorflow.python.keras.backend as K
 
-# 设置随机种子，方便复现
 seed = 1234
 random.seed(seed)
 np.random.seed(seed)
-
-
 
 class Attention(keras.layers.Layer):
     def __init__(self, attention_hidden_units=(80, 40, 1), attention_activation="sigmoid", supports_masking=True):
@@ -63,12 +54,12 @@ class Attention(keras.layers.Layer):
 
         if self.supports_masking:
             mask = tf.sequence_mask(hist_len, max_len)  # (batch_size, 1, max_len)
-            padding = tf.ones_like(outputs) * (-1e12)  
+            padding = tf.ones_like(outputs) * (-1e12)
             outputs = tf.where(mask, outputs, padding)
 
         # 对outputs进行scale
         outputs = outputs / (hidden_units ** 0.5)
-        outputs = K.softmax(outputs)  
+        outputs = K.softmax(outputs)
 
 
         outputs = tf.matmul(outputs, hist_emb)  # batch_size, 1, hidden_units)
@@ -83,7 +74,7 @@ class Attention(keras.layers.Layer):
 
 def share_weights(hidden_units=63930):
     '''
-    reuse a group of keras layers(封装多层，同时可以共享)
+    reuse a group of keras layers
     '''
     layers_units = (80, 40, 1)
     share_input = keras.layers.Input(shape=(hidden_units, ))

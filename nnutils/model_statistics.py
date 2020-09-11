@@ -74,13 +74,13 @@ class ModelStatistics:
             "kernel_size": layer_info.kernel_size[2:] if len(layer_info.kernel_size)>2 else ['',''],
             "pad_size": layer_info.pad_size if layer_info.pad_size else ['',''],
             "stride_size": layer_info.stride_size if layer_info.stride_size else ['',''],
-            # add batch size?
-            "gemm": layer_info.gemm if layer_info.gemm else [''],
-            "vect": layer_info.vect if layer_info.vect else [''],
-            "acti": layer_info.acti if layer_info.acti else [''],
-            'gemmB': layer_info.gemmB if layer_info.gemmB else [''],
-            'vectB': layer_info.vectB if layer_info.vectB else [''],
-            'actiB': layer_info.actiB if layer_info.actiB else [''],
+            # batch size and bpe
+            "gemm": layer_info.gemm * self.bs if layer_info.gemm else [''],
+            "vect": layer_info.vect * self.bs if layer_info.vect else [''],
+            "acti": layer_info.acti * self.bs if layer_info.acti else [''],
+            'gemmB': layer_info.gemmB * self.bs if layer_info.gemmB else [''],
+            'vectB': layer_info.vectB * self.bs if layer_info.vectB else [''],
+            'actiB': layer_info.actiB * self.bs if layer_info.actiB else [''],
         } # list instead of string
 
         depth = layer_info.depth
