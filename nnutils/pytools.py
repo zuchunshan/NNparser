@@ -52,7 +52,13 @@ def modelLst(ucfg):
     # vision models in torchvision
     if hasattr(models,nnname):
         model = getattr(models, nnname)()
-        x = torch.rand(1,3,224,224)
+        # evaluation model instead of training
+        model.eval()
+        # todo args, ucfg
+        if nnname=='inception_v3':
+            x = torch.rand(1,3,299,299)
+        else:
+            x = torch.rand(1,3,224,224)
         y = model(x)
         ms = str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
 

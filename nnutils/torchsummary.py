@@ -144,7 +144,6 @@ def summary(
 
     formatting = FormattingOptions(branching, depth, verbose, col_names, col_width)
     formatting.set_layer_name_width(summary_list)
-    # !
     results = ModelStatistics(summary_list, input_size, formatting, ucfg)
     return results
 

@@ -205,6 +205,7 @@ class LayerInfo:
             #     # y' = 1 - y^2
             #     self.acti = self.output_size[1]
             #     self.actiB = self.acti
+            # TODO add backward ops for RNN
             elif "LSTM" == self.class_name:
                 '''
                 Forget gate: F = acti(weightF*[h,x]+bF)
@@ -223,22 +224,13 @@ class LayerInfo:
                     - hidden size: size of h (num_layers * num_directions, batch, hidden_size)
                     - cell state: (num_layers * num_directions, batch, hidden_size)
                 '''
-                self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
                 self.gemm = self.macs + 2 * 4 * ub * self.module.num_layers * self.module.hidden_size
                 self.vect = self.module.num_layers * self.module.hidden_size * 4 # 4 pointwise ops (exclude acti)
-                # backward
-                self.actiB = self.acti
-                self.gemmB = self.gemm
-                self.vectB = self.acti * 4 + self.vect * 5 * ub # 4 subtract, 6 multi, 10 add
+                self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
             elif "GRU" == self.class_name:
-                # forward
                 self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
                 self.acti = self.module.num_layers * self.module.hidden_size * 3
                 self.vect = self.acti
-                # backward
-                self.actiB = self.acti
-                self.vectB = self.vect * 2 + self.vect * 5 * ub
-                self.gemmB = self.gemm
             else:
                 self.gemm = self.macs
                 self.gemmB = self.macs
