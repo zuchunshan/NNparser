@@ -225,7 +225,7 @@ class LayerInfo:
                     - cell state: (num_layers * num_directions, batch, hidden_size)
                 '''
                 self.gemm = self.macs + 2 * 4 * ub * self.module.num_layers * self.module.hidden_size
-                self.vect = self.module.num_layers * self.module.hidden_size * 4 # 4 pointwise ops (exclude acti)
+                # self.vect = self.module.num_layers * self.module.hidden_size * 4 # 4 pointwise ops (exclude acti)
                 self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
             elif "GRU" == self.class_name:
                 self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
@@ -233,7 +233,7 @@ class LayerInfo:
                 self.vect = self.acti
             else:
                 self.gemm = self.macs
-                self.gemmB = self.macs
+
 
     def check_recursive(self, summary_list: "List[LayerInfo]") -> None:
         """ if the current module is already-used, mark as (recursive).

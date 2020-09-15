@@ -26,10 +26,18 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-n","--nnname", help="Neural Network to be parsed",
                     default='alexnet')
-parser.add_argument("-b","--batchsize", help="Batch Sized",
+parser.add_argument("-b","--batchsize", help="Batch Size",
                     default=1, type=int)
 parser.add_argument("-e","--BPE", help="Byte per element",
                     default=1, type=int)
+
+parser.add_argument("-c","--channel", help="Channels",
+                    default=3, type=int)
+parser.add_argument("-H","--height", help="Height Size",
+                    default=224, type=int)
+parser.add_argument("-W","--width", help="Width Size",
+                    default=224, type=int)
+
 parser.add_argument("--model", help="name of new model",
                     default='ssd_mob', type=str)
 args = parser.parse_args()

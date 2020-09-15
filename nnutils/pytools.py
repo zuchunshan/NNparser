@@ -19,7 +19,7 @@ def modelLst(ucfg):
     ''' ucfg: user's Config for the table output: nnname, BS, BPE '''
 
     nnname = ucfg['nnname']
-
+    c, h, w = ucfg['channel'], ucfg['height'], ucfg['width']
     # produce config list of models per layer of the given nn model name
     isconv = True
     depth = 4
@@ -54,15 +54,16 @@ def modelLst(ucfg):
         model = getattr(models, nnname)()
         # evaluation model instead of training
         model.eval()
-        # todo args, ucfg
-        if nnname=='inception_v3':
-            x = torch.rand(1,3,299,299)
-        else:
-            x = torch.rand(1,3,224,224)
+        x = torch.rand(1,c,h,w)
+        # if nnname=='inception_v3':
+        #     x = torch.rand(1,3,299,299)
         y = model(x)
         ms = str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
+    # TODO add YOLO v3
+
     if nnname=='maskrcnn':
+        # TODO add MUltiScaleRoIAlign size
         depth = 6
         model = models.detection.maskrcnn_resnet50_fpn(pretrained=False)
         model.eval()
