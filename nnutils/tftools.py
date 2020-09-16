@@ -18,7 +18,7 @@ def headgen(isconv):
     header0 = ['Layer Hierarchy'] * 2
     if isconv:
         dim = 3 # 4 dim tensor: BHWC, no B
-        feat_dim = ['Channel', 'Height', 'Width'] * 3
+        feat_dim = ['Height', 'Width', 'Channel'] * 3
         feat_dim0 = ['Input Dim (Weight)'] * dim + ['Input Dim (Bias)'] * dim + ['Output Dimension'] * dim
         lweights = ['Height', 'Width', 'X', 'Y', 'X', 'Y'] # kernel, stride, padding
         lweights0 = ['Kernel'] * 2 + ['Stride'] * 2 + ['Padding'] * 2
@@ -409,8 +409,6 @@ def ListGen(model,isconv,ucfg):
         # conv tensor
         (kh, kw, sh, sw, ph, pw) = pararetrival(x)
 
-        # if isinstance(x, keras.layers.Lambda):
-        #     print('')
         datai = datai*bs
         datao = datao*bs
         dataw = dataw*bs
