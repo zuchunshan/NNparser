@@ -6,7 +6,7 @@ Created on Mon Jul  1 2020
 """
 import nnutils.tftools as tt
 # tested models
-    # 1. keras pretrianed models: 
+    # 1. keras pretrianed models:
         # 'DenseNet121',  'DenseNet169',  'DenseNet201',
         # 'InceptionResNetV2',  'InceptionV3',
         # 'MobileNet',  'MobileNetV2',
@@ -27,15 +27,23 @@ parser.add_argument("-b","--batchsize", help="Batch Sized",
                     default=1, type=int)
 parser.add_argument("-e","--BPE", help="Byte per element",
                     default=1, type=int)
+
+parser.add_argument("-c","--channel", help="Channels",
+                    default=3, type=int)
+parser.add_argument("-H","--height", help="Height Size",
+                    default=224, type=int)
+parser.add_argument("-W","--width", help="Width Size",
+                    default=224, type=int)
+
 parser.add_argument("--model", help="name of new model",
                     default='simpleconv', type=str)
 args = parser.parse_args()
 
-(model,isconv) = tt.GetModel(vars(args)) 
+(model,isconv) = tt.GetModel(vars(args))
 
-# Producing Parameter table of given Model 
-paralist = tt.ListGen(model,isconv,vars(args)) 
-    
+# Producing Parameter table of given Model
+paralist = tt.ListGen(model,isconv,vars(args))
+
 # exproting tables to //outputs//tf
 if args.nnname == 'newmodel':
     nnname = args.model

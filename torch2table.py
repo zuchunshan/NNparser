@@ -14,9 +14,6 @@ import nnutils.pytools as pt
 #   densenet121, densenet161, densenet169, densenet_201,
 #   resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2
 #   mnasnet'n'_'n', shufflenet_v2_x'n'_'n',
-
-# ! inception_v3
-
 # 2. Recomendation: dlrm
 # 3. Detection: maskrcnn, ssd_mobilenet, ssd_r34
 # 4. RNN: lstm, gru

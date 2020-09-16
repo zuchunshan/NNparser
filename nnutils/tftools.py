@@ -1,43 +1,45 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul  6 10:33:46 2020
-
 @author: LL
+
+Updated on Mon Sep 16 17:00:31 2020
+@Stephen Qian
 """
 import tensorflow.keras as keras
 import numpy as np
-import  pandas as pd
+import pandas as pd
 import nnutils.formattable as ft
 
 
 def headgen(isconv):
-    # to do: adjust the names according to models
-    paralist = []
+    # todo: adjust the names according to models
+    header = ['Layer', 'Type']
+    header0 = ['Layer Hierarchy'] * 2
     if isconv:
-        dim =3 # 4 dim tensor: BHWC, no B
-        linput=['I0_'+str(i) for i in range(dim)] + ['I1_'+str(i) for i in range(dim)]
-        loutput=['O_'+str(i) for i in range(dim)]
-        lweights = ['K_1','K_2','S_1','S_2','p_1','p_2']
-        largs =['SizeI','SizeO','SizeW','OpGemm','OpElem','OpActi']
-        row0 = ['layer','type'] +linput + loutput + lweights + largs+['Misc']
-
+        dim = 3 # 4 dim tensor: BHWC, no B
+        feat_dim = ['Channel', 'Height', 'Width'] * 3
+        feat_dim0 = ['Input Dim (Weight)'] * dim + ['Input Dim (Bias)'] * dim + ['Output Dimension'] * dim
+        lweights = ['Height', 'Width', 'X', 'Y', 'X', 'Y'] # kernel, stride, padding
+        lweights0 = ['Kernel'] * 2 + ['Stride'] * 2 + ['Padding'] * 2
     else:
-        dim=2 # 3 dim: B+ 1XW vector,no B
-        linput=['I0_'+str(i) for i in range(dim)] + ['I1_'+str(i) for i in range(dim)]
-        loutput=['O_'+str(i) for i in range(dim)]
+        dim = 2 # 3 dim: B+ 1XW vector,no B
+        feat_dim = ['Height', 'Width'] * 3
+        feat_dim0 = ['Input Dim (Weight)'] * dim + ['Input Dim (Bias)'] * dim + ['Output Dimension'] * dim
         lweights = []
-        largs =['SizeI','SizeO','SizeW','OpGemm','OpElem','OpActi']
-        row0 = ['layer','type'] +linput + loutput + lweights + largs+['Misc']
+        lweights0 = []
 
-    paralist.append(row0)
-    # paralist.append(row1)
-    return paralist
+    header.extend(feat_dim + lweights)
+    header.extend(['Input', 'Output', 'Weight'] + ['GEMM', 'ElemWise', 'Activation'] * 2)
+    header0.extend(feat_dim0 + lweights0)
+    header0.extend(['Size of Parameters'] * 3 + ['Forward Ops'] * 3 + ['Backward Ops'] * 3)
+    return [header0, header]
 
 def inputgen(x,inp0,inp1,extin):
     # input tensors
     if not isinstance(x.input, list): # single input
         datai0=1
-        for i in range(1,4,1):
+        for i in range(1,4):
             try:
                 inp0[i-1]=x.input.shape[i]
             except IndexError:
@@ -48,7 +50,7 @@ def inputgen(x,inp0,inp1,extin):
         datai=(datai0)
     elif len(x.input)>1:       # 2 inputs
         datai0=1
-        for i in range(1,4,1):
+        for i in range(1,4):
             try:
                 inp0[i-1]=x.input[0].shape[i]
             except IndexError:
@@ -57,7 +59,7 @@ def inputgen(x,inp0,inp1,extin):
             if isinstance(item,int):
                 datai0=datai0*item
         datai1=1
-        for i in range(1,4,1):
+        for i in range(1,4):
             try:
                 inp1[i-1]=x.input[1].shape[i]
             except IndexError:
@@ -83,7 +85,7 @@ def outputgen(x,out,extin):
     if not isinstance(x.output, list):
         # single output：2d vector or 4d tensor: batch x oh x ow x oc
         datao=1
-        for i in range(1,4,1):
+        for i in range(1,4):
             try:
                 out[i-1]=x.output.shape[i]
             except IndexError:
@@ -93,7 +95,7 @@ def outputgen(x,out,extin):
                 datao=datao*item
     else: # output0,size of more outputs
         datao=1
-        for i in range(1,4,1):
+        for i in range(1,4):
             try:
                 out[i-1]=x.output[0].shape[i]
             except IndexError:
@@ -132,7 +134,7 @@ def getweightsize(x,dataw):
 
 def opscomputation(x,datao,inp0):
     ltype = str(type(x)).split(".")[-1].split("'")[0]
-    gemm=''; vect='' ; acti =''
+    gemm, vect, acti = '','',''
     if ltype:
         if ltype=='BatchNormalization': # BN
             vect = datao*2 #1 elem* 1elem+
@@ -204,7 +206,7 @@ def opscomputation(x,datao,inp0):
             lens = x.input_shape[1]
             ub = 1 if x.use_bias else 0
             units=x.units
-            gemm = lens*units+ units*ub#1 add 2mac
+            gemm = lens*units+ units*ub #1 add 2mac
             acti = lens*ub
 
         elif ltype=='Conv2D':
@@ -233,9 +235,13 @@ def opscomputation(x,datao,inp0):
 
     return gemm,vect,acti
 
+def backOpsComp():
+    # back ops
+    return '','',''
+
 def pararetrival(x):
     conf = x.get_config()
-    kh = ''; kw=''; sh = ''; sw=''; ph = ''; pw=''
+    kh, kw, sh, sw, ph, pw = ['']*6
     # Conv2d, MaxPooling2D,
     if isinstance(x, keras.layers.Conv2D):
         # kernel size
@@ -277,8 +283,7 @@ def pararetrival(x):
             pw=kw//2
     return kh,kw,sh,sw,ph,pw
 
-
-def GetModel(ucfg):
+def GetModel(ucfg, draw_graph=True):
     ''' ucfg: user's Config for the table output: nnname, BS, BPE '''
 
     nnname = ucfg['nnname']
@@ -372,20 +377,20 @@ def GetModel(ucfg):
 
         ## ===== end of your codes  ======
 
-    if True:
+    if draw_graph:
         g = keras.utils.model_to_dot(model,show_shapes=True)
         if nnname =='newmodel':
             nnname = ucfg['model']
         g.write_pdf(".//outputs//tf//"+nnname+'.pdf')
-    return model,isconv
+    return model, isconv
 
 def ListGen(model,isconv,ucfg):
-    bs=ucfg['batchsize']*ucfg['BPE']
-    paralist=headgen(isconv)
+    bs = ucfg['batchsize']*ucfg['BPE']
+    paralist = headgen(isconv)
     for x in model.layers: #model.layers[::-1]
         # no batch, hxwxc
-        inp0=['']*3; inp1=['']*3; out=['']*3
-        kh = ''; kw=''; sh = ''; sw=''; ph = ''; pw=''
+        inp0 = ['']*3; inp1 = ['']*3; out = ['']*3
+        kh = ''; kw = ''; sh = ''; sw = ''; ph = ''; pw=''
         extin=''
         datai=''; datao=''; dataw=''
         gemm=''; vect='' ; acti =''
@@ -399,6 +404,8 @@ def ListGen(model,isconv,ucfg):
         dataw = getweightsize(x,dataw)
         # # of ops: gemm, elememwise, activiation(transcendental functions)
         (gemm, vect, acti) = opscomputation(x,datao,inp0)
+        # ! back ops
+        (gemmB, vectB, actiB) = backOpsComp()
         # conv tensor
         (kh, kw, sh, sw, ph, pw) = pararetrival(x)
 
@@ -407,33 +414,30 @@ def ListGen(model,isconv,ucfg):
         datai = datai*bs
         datao = datao*bs
         dataw = dataw*bs
+        # extin last column
         if isconv:
-            new_row = [x.name,ltype]+ inp0+inp1+out+[kh,kw,sh,sw,ph,pw,datai,datao,dataw,gemm,vect,acti,extin]
+            new_row = [x.name,ltype]+ inp0+inp1+out+[kh,kw,sh,sw,ph,pw,datai,datao,dataw,gemm,vect,acti,gemmB, vectB, actiB]
             paralist.append(new_row)
         else:
             doublerow = False
             dim=2
-            if isinstance(gemm,list):
+            if isinstance(gemm, list):
                 if doublerow: # multihead attention: tow rows
-                    new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm[0],vect[0],acti[0],extin]
+                    new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm[0],vect[0],acti[0],gemmB, vectB, actiB]
                     paralist.append(new_row)
                     new_row = ['']*11+[gemm[1],vect[1],acti[1]]+['']
                     paralist.append(new_row)
                 else:
-                    new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm[1],vect[1],acti[1],extin]
+                    new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm[1],vect[1],acti[1],gemmB, vectB, actiB]
                     paralist.append(new_row)
             else:
-                new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm,vect,acti,extin]
+                new_row = [x.name,ltype]+ inp0[:dim]+inp1[:dim]+out[:dim]+[datai,datao,dataw,gemm,vect,acti,gemmB, vectB, actiB]
                 paralist.append(new_row)
     return paralist
 
-
 def tableExport(paralist,nnname):
-    df = pd.DataFrame(paralist)
     paraout = './/outputs//tf//'+nnname+'.xlsx'
-    with pd.ExcelWriter(paraout) as writer:
-        df.to_excel(writer,sheet_name='details')
-        # dfsum.to_excel(writer,sheet_name='summary',index=Flase)
-        writer.save()
-    writer.close()
+    headers = list(zip(*paralist[:2]))
+    df = pd.DataFrame(paralist[2:], columns=pd.MultiIndex.from_tuples(headers))
+    df.to_excel(paraout, sheet_name='Details')
     ft.SumAndFormat(paraout, df)

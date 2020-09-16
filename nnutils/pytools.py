@@ -55,8 +55,6 @@ def modelLst(ucfg):
         # evaluation model instead of training
         model.eval()
         x = torch.rand(1,c,h,w)
-        # if nnname=='inception_v3':
-        #     x = torch.rand(1,3,299,299)
         y = model(x)
         ms = str(summary(model,x, depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
@@ -247,7 +245,7 @@ def tableExport(ms, nnname, y, draw_graph=True):
     df.to_excel(paraout, sheet_name='Details')
 
     # add summary sheet and formatting
-    ft.SumAndFormat(paraout, df)
+    # ft.SumAndFormat(paraout, df)
 
     # do NOT draw densenet201 or higher as it would take tremendous amount of time
     # densenet1xx are all allowed, although densenet169 would take about 3 hours

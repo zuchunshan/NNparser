@@ -129,7 +129,6 @@ class LayerInfo:
                 self.pad_size = [self.module.padding,'']
 
         """ Set num_params using the module's parameters. Generator """
-        # ! redundantly, this appears to be traversing all parameters instead of one layer
         for name, param in self.module.named_parameters():
             self.num_params += param.nelement()
             self.trainable &= param.requires_grad
@@ -146,7 +145,6 @@ class LayerInfo:
                 if "Conv" in self.class_name:
                     self.macs += (param.nelement() * int(np.prod(self.output_size[2:])))
                 else:
-                    # ! same as num_params?
                     self.macs += param.nelement()
 
             # RNN modules have inner weights such as weight_ih_l0
@@ -225,14 +223,15 @@ class LayerInfo:
                     - cell state: (num_layers * num_directions, batch, hidden_size)
                 '''
                 self.gemm = self.macs + 2 * 4 * ub * self.module.num_layers * self.module.hidden_size
-                # self.vect = self.module.num_layers * self.module.hidden_size * 4 # 4 pointwise ops (exclude acti)
                 self.acti = self.module.num_layers * self.module.hidden_size * 5 # 5 acti above with h
+                self.vect = self.module.num_layers * self.module.hidden_size * 4 # 4 pointwise ops (exclude acti)
             elif "GRU" == self.class_name:
                 self.gemm = self.macs + 6 * ub * self.module.num_layers * self.module.hidden_size
                 self.acti = self.module.num_layers * self.module.hidden_size * 3
                 self.vect = self.acti
             else:
                 self.gemm = self.macs
+                self.gemmB = self.gemm
 
 
     def check_recursive(self, summary_list: "List[LayerInfo]") -> None:
