@@ -134,15 +134,18 @@ def getweightsize(x,dataw):
 
 def opscomputation(x,datao,inp0):
     ltype = str(type(x)).split(".")[-1].split("'")[0]
-    gemm, vect, acti = '','',''
+    gemm, vect, acti, gemmB, vectB, actiB = '','','','','',''
     if ltype:
         if ltype=='BatchNormalization': # BN
             vect = datao*2 #1 elem* 1elem+
+            vectB = vect
         elif ltype=='Add': #add layer
             vect = datao # output tensor size
+            vectB = vect
         elif ltype=='LayerNormalization': #add layer
             acti = datao # output tensor size
-        elif ltype=='MultiHeadAttention': #attentio layer
+            actiB = acti
+        elif ltype=='MultiHeadAttention': #attention layer
             head = x.head_num
             seqlen,emblen = inp0[:2]
             keylen =emblen//head # feature_dim
@@ -175,8 +178,9 @@ def opscomputation(x,datao,inp0):
             gemm = [gemmoh, gemm]
             vect = [vectoh,vect]
             acti = [actioh, acti]
+            # TODO add backprop
 
-        elif ltype=='LayerNormalization': #attentio layer
+        elif ltype=='LayerNormalization': #attention layer
             seqlen,emblen = inp0[:2]
             vect=0; acti=0
             #  along last dim, emb dim
@@ -190,7 +194,7 @@ def opscomputation(x,datao,inp0):
             # output:( x-mx)/std
             vect += (seqlen*2)
 
-        elif ltype=='FeedForward': #attentio layer
+        elif ltype=='FeedForward': #attention layer
             seqlen,emblen = inp0[:2]
             units=x.units
             gemm=0; acti=0
@@ -208,23 +212,30 @@ def opscomputation(x,datao,inp0):
             units=x.units
             gemm = lens*units+ units*ub #1 add 2mac
             acti = lens*ub
+            gemmB = gemm
+            actiB = acti
 
         elif ltype=='Conv2D':
             ub = 1 if x.use_bias else 0
-            gemm=int(np.prod(x.kernel_size))*inp0[2]*datao+x.output_shape[3]*ub
+            gemm = int(np.prod(x.kernel_size))*inp0[2]*datao+x.output_shape[3]*ub
+            gemmB = gemm
 
         elif ltype== 'GlobalAveragePooling2D':
             vect=datao*(inp0[0]*inp0[1]-1) #add op
+            vectB = vect
 
         elif ltype=='Activation':
             acti = datao  #activation functions
+            actiB = acti
 
         elif ltype=='DepthwiseConv2D':
             ub = 1 if x.use_bias else 0
             gemm=int(np.prod(x.kernel_size))*datao+x.output_shape[3]*ub
+            gemmB = gemm
 
         elif ltype=='MaxPooling2D':
-            vect=datao*int((np.prod(x.pool_size)-1)) #max op
+            vect = datao*int((np.prod(x.pool_size)-1)) #max op
+            vectB = datao*int(np.prod(x.pool_size))
 
         else:
             weights=x.get_weights()
@@ -232,12 +243,9 @@ def opscomputation(x,datao,inp0):
                 gemm=0
                 for item in weights:
                     gemm += int(np.prod(item.shape))
+            gemmB = gemm
 
-    return gemm,vect,acti
-
-def backOpsComp():
-    # back ops
-    return '','',''
+    return gemm,vect,acti,gemmB,vectB,actiB
 
 def pararetrival(x):
     conf = x.get_config()
@@ -360,7 +368,7 @@ def GetModel(ucfg, draw_graph=True):
         from tensorflow.keras import layers
         # Define a customized model
         model = keras.Sequential()
-        model.add(keras.Input(shape=(250, 250, 3)))  # 250x250 RGB images
+        model.add(keras.Input(shape=(ucfg['height'], ucfg['width'], ucfg['channel'])))
         model.add(layers.Conv2D(32, 5, strides=2, activation="relu"))
         model.add(layers.Conv2D(32, 3, activation="relu"))
         model.add(layers.MaxPooling2D(3))
@@ -403,9 +411,7 @@ def ListGen(model,isconv,ucfg):
         # weight size
         dataw = getweightsize(x,dataw)
         # # of ops: gemm, elememwise, activiation(transcendental functions)
-        (gemm, vect, acti) = opscomputation(x,datao,inp0)
-        # ! back ops
-        (gemmB, vectB, actiB) = backOpsComp()
+        (gemm, vect, acti, gemmB, vectB, actiB) = opscomputation(x,datao,inp0)
         # conv tensor
         (kh, kw, sh, sw, ph, pw) = pararetrival(x)
 

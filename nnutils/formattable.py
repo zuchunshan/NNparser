@@ -42,7 +42,7 @@ def SumAndFormat(paraout, df=None):
             ['Total Activations(MB):',sizeO.sum()/(1000**2)],
             ['Total Weights(MB):',sizeW.sum()/(1000**2)],
             ['Total Forward GEMM (G_ops):',opGemmF.sum()/(1000**3)],
-            ['Total Backward GEMM (G_ops):',opGemmB.sum()/(1000**3)],
+            # ['Total Backward GEMM (G_ops):',opGemmB.sum()/(1000**3)],
         ]
     )
     # set global font etc.

@@ -73,7 +73,6 @@ def modelLst(ucfg):
 
     if nnname =='dlrm':
         depth=2
-        isconv = False
         from torchmodels.dlrm.dlrm_s_pytorch import DLRM_Net
         import numpy as np
         # Setting for Criteo Kaggle Display Advertisement Challenge
@@ -94,29 +93,20 @@ def modelLst(ucfg):
         lS_o = torch.Tensor([[0,2]]*len(ln_emb)).to(torch.long)
         y = model(x,lS_o,lS_i)
         inst = (x,[lS_o,lS_i])
-        if isconv:
-            ms=str(summary(model,inst, depth=depth,branching=2,verbose=1,ucfg=ucfg))
-        else:
-            col_names =col_names_noconv
-            ms=str(summary(model,inst, col_names=col_names, depth=depth,branching=2,verbose=1,ucfg=ucfg))
+        col_names = col_names_noconv
+        ms=str(summary(model,inst, col_names=col_names, depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname =='bert-base-cased':
-        isconv = False
         from transformers import AutoModel # using Huggingface's version
         model = AutoModel.from_pretrained(nnname)
         # psudeo input
         inst = torch.randint(100,2000,(1,7))
-
         depth = 2
-        if isconv:
-            ms=str(summary(model,inst, depth=depth,branching=2,verbose=1))
-        else:
-            col_names =col_names_noconv
-            ms=str(summary(model,inst, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
+        col_names =col_names_noconv
+        ms=str(summary(model,inst, col_names=col_names,depth=depth,branching=2,verbose=1,ucfg=ucfg))
 
     if nnname =='mymodel':
         depth=2
-        isconv = False
         ## ===== To add a customized model ====
         # model cfgs
         N, D_in, H, D_out = 64, 1000, 100, 10
@@ -137,7 +127,6 @@ def modelLst(ucfg):
 
     if nnname =='lstm':
         depth=2
-        isconv = False
         from torchmodels.lstm import LSTMNet
         x=torch.rand(2,1).to(torch.long)
         model = LSTMNet()
@@ -147,7 +136,6 @@ def modelLst(ucfg):
 
     if nnname =='gru':
         depth=2
-        isconv = False
         from torchmodels.gru import GRUNet
         x=torch.rand(2,1).to(torch.long)
         model = GRUNet()
@@ -179,7 +167,6 @@ def modelLst(ucfg):
 
     if nnname == 'gnmt':
         depth = 4
-        isconv = False
         col_names = col_names_noconv
         from torchmodels.seq2seq.models.gnmt import GNMT
         model_config = {'hidden_size': 1024,

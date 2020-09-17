@@ -174,7 +174,7 @@ class LayerInfo:
             if "Conv" in self.class_name:
                 units = int(np.prod(self.output_size[1:]))
                 self.gemm = int(np.prod(self.output_size[2:])) * int(np.prod(self.kernel_size)) + units * ub
-                self.gemmB = int(np.prod(self.input_size[2:])) * int(np.prod(self.kernel_size))
+                self.gemmB = self.gemm
             elif "BatchNorm2d" in self.class_name:
                 self.vect = int(np.prod(self.output_size[1:])) * 2 # 1 elem* 1 elem+
                 self.vectB = self.vect

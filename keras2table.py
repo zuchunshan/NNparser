@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul  1 2020
-
 @author: LL
+
+Updated on Mon Sep 17 19:02:21 2020
+@Stephen Qian
 """
 import nnutils.tftools as tt
 # tested models
@@ -17,6 +19,7 @@ import nnutils.tftools as tt
     # 2 Reomendeation: din
     # 3 EfficientNet: EfficientNetB0 ~ EfficientNetB7
     # 4 NLP: bert
+# ! din failed
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -31,9 +34,9 @@ parser.add_argument("-e","--BPE", help="Byte per element",
 parser.add_argument("-c","--channel", help="Channels",
                     default=3, type=int)
 parser.add_argument("-H","--height", help="Height Size",
-                    default=224, type=int)
+                    default=250, type=int)
 parser.add_argument("-W","--width", help="Width Size",
-                    default=224, type=int)
+                    default=250, type=int)
 
 parser.add_argument("--model", help="name of new model",
                     default='simpleconv', type=str)
