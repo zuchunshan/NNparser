@@ -20,7 +20,7 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 1.3. Install the following Python modules:
 
-`pandas, numpy,matplotlib,openpyxl,scikit-learn,scikit-image,graphviz,python-graphviz,pydot`
+`pandas, numpy, matplotlib, openpyxl, scikit-learn, scikit-image, graphviz, python-graphviz, pydot`
 
 ## 2. Usages:
 
@@ -32,17 +32,17 @@ There are two versions of tools integrated in the package, one for ML framework 
 
 - type the command as the following format to get the results
 
-`python torch2table.py -n resnet50 -b 1 -e 1`
+`python torch2table.py -n resnet50`
 
 - six optional arguments are:
 
 -n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
 
--b: batch-size of the input data
+-b: batch-size of the input data, default at 1
 
--e: element size in byte, for example, float32 = 4, int8 =1, etc.
+-e: element size in byte, for example, float32 = 4, int8 =1, etc., default at 1
 
--c: channel size of the input data tensor, default at 3 for RGB pictures
+-c: channel size of the input data tensor, default at 3 (for RGB pictures)
 
 -H: height size of the input data tensor, default at 224
 
@@ -56,7 +56,7 @@ There are two versions of tools integrated in the package, one for ML framework 
 
 - base models
 
-`alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn, vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152, squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201, densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2, resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2,mnasnet'n'_'n'`
+`alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn, vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152, squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201, densenet_161,  googlenet, inception_v3, shufflenet_v2_x'n'_'n', mobilenet_v2, resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2,mnasnet'n'_'n'`
 
 - detection model
 
@@ -80,23 +80,25 @@ NOTE:
 
 2. Some models, such as `densenet`, will take significantly longer to render network graph because of its complexity. Based on our test (with CPU instead of GPU), `densenet121` takes about several minutes to finish, while `densenet161/densenet169` would require more than 2 hours to generate corresponding PDF file.
 
+3. `inception v3` model will pop size inconsistency error when default values of `H` and `W` are used, because 224 is too small to have valid padding/kernel size after certain layers of processing, one can fix it by switching to a bigger initial value. E.g. `python torch2table.py -n inception_v3 -H 299 -W 299`
+
 ### 2.2. Tensorflow version: keras2table
 
 ##### 2.2.1. Command
 
 - type the command as the following format to get the results
 
-`python keras2table.py -n ResNet50 -b 1 -e 1`
+`python keras2table.py -n ResNet50`
 
 - three optional arguments are:
 
 -n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
 
--b: batch-size of the input data
+-b: batch-size of the input data, default at 1
 
--e: element size in byte, for example, float32 = 4, int8 =1, etc.
+-e: element size in byte, for example, float32 = 4, int8 =1, etc., default at 1
 
--c: channel size of the input data tensor, default at 3 for RGB pictures
+-c: channel size of the input data tensor, default at 3 (for RGB pictures)
 
 -H: height size of the input data tensor, default at 250
 
