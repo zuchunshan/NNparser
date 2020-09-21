@@ -34,7 +34,7 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 
 
-## 2 Usages:
+## 2. Usages:
 
 ​	There are two versions of tools integrated in the package, one for ML framework pytorch: *torch2table*; the other is for Tensorflow via keras: *keras2table*.
 
@@ -44,15 +44,21 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 - type the command as the following format to get the results
 
-  ​	`python torch2table.py -n resnet50 -b 1 -e 1`
+  `python torch2table.py -n resnet50 -b 1 -e 1`
 
-- three optional arguments are:
+- six optional arguments are:
 
   -n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
-
+  
   -b: batch-size of the input data
-
+  
   -e: element size in byte, for example, float32 = 4, int8 =1, etc.
+  
+  -c: channel size of the input data tensor, default at 3 for RGB pictures
+  
+  -H: height size of the input data tensor, default at 224
+  
+  -W: width size of the input data tensor, default at 224
 
 - The results are exported as the excel tables in ''/output/torch/''.
 
@@ -62,20 +68,15 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 - base models
 
-​	alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn,
-​	vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152,
-​	squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201,
-​	densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2,
-​	resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2,
-​	mnasnet'n'_'n'
+`alexnet, vgg11, vgg13, vgg16, vgg19, vgg11_bn, vgg_13 bn, vgg16_bn, vgg19_bn, resnet18, resnet34, resnet50, resnet101, resnet152, squeezenet1_0, squeezenet1_1, densenet121, densenet_169, densenet_201, densenet_161,  googlenet, shufflenet_v2_x'n'_'n', mobilenet_v2, resnext50_32x4d, resnext101_32x8d, wide_resnet50_2, wide_resnet101_2,mnasnet'n'_'n'`
 
 - detection model
 
-​	maskrcnn
+`maskrcnn`
 
 2. Recomendation:
 
-​	dlrm
+`dlrm`
 
 3. RNN network:
 
@@ -99,7 +100,7 @@ NOTE:
 
 - type the command as the following format to get the results
 
-  ​	`python keras2table.py -n ResNet50 -b 1 -e 1`
+  `python keras2table.py -n ResNet50 -b 1 -e 1`
 
 - three optional arguments are:
 
