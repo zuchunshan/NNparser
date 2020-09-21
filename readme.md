@@ -32,21 +32,21 @@ There are two versions of tools integrated in the package, one for ML framework 
 
 - type the command as the following format to get the results
 
-  `python torch2table.py -n resnet50 -b 1 -e 1`
+`python torch2table.py -n resnet50 -b 1 -e 1`
 
 - six optional arguments are:
 
-  -n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
-  
-  -b: batch-size of the input data
-  
-  -e: element size in byte, for example, float32 = 4, int8 =1, etc.
-  
-  -c: channel size of the input data tensor, default at 3 for RGB pictures
-  
-  -H: height size of the input data tensor, default at 224
-  
-  -W: width size of the input data tensor, default at 224
+-n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
+
+-b: batch-size of the input data
+
+-e: element size in byte, for example, float32 = 4, int8 =1, etc.
+
+-c: channel size of the input data tensor, default at 3 for RGB pictures
+
+-H: height size of the input data tensor, default at 224
+
+-W: width size of the input data tensor, default at 224
 
 - The results are exported as the excel tables in ''/output/torch/''.
 
@@ -86,43 +86,43 @@ NOTE:
 
 - type the command as the following format to get the results
 
-  `python keras2table.py -n ResNet50 -b 1 -e 1`
+`python keras2table.py -n ResNet50 -b 1 -e 1`
 
 - three optional arguments are:
 
-  -n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
+-n: the name of the neural network model. Tested models are listed below. Please note that the name is **case-sensitive**
 
-  -b: batch-size of the input data
+-b: batch-size of the input data
 
-  -e: element size in byte, for example, float32 = 4, int8 =1, etc.
+-e: element size in byte, for example, float32 = 4, int8 =1, etc.
 
-  -c: channel size of the input data tensor, default at 3 for RGB pictures
-  
-  -H: height size of the input data tensor, default at 250
-  
-  -W: width size of the input data tensor, default at 250
+-c: channel size of the input data tensor, default at 3 for RGB pictures
+
+-H: height size of the input data tensor, default at 250
+
+-W: width size of the input data tensor, default at 250
 
 - The results are exported as the excel tables in ''/output/tf/''
 
 ##### 2.2.2. Tested models:
 
 1. keras pretrianed models:
-'DenseNet121', 'DenseNet169', 'DenseNet201', 'InceptionResNetV2', 'InceptionV3','MobileNet', 'MobileNetV2', 'NASNetLarge', 'NASNetMobile','ResNet101', 'ResNet101V2', 'ResNet152', 'ResNet152V2', 'ResNet50', 'ResNet50V2', 'VGG16', 'VGG19', 'Xception',
 
-2. Reomendeation: din
+`'DenseNet121', 'DenseNet169', 'DenseNet201', 'InceptionResNetV2', 'InceptionV3','MobileNet', 'MobileNetV2', 'NASNetLarge', 'NASNetMobile','ResNet101', 'ResNet101V2', 'ResNet152', 'ResNet152V2', 'ResNet50', 'ResNet50V2', 'VGG16', 'VGG19', 'Xception'`
 
-3. EfficientNet: EfficientNetB0 ~ EfficientNetB7
+2. Reomendeation: `din`
 
-4. NLP: bert
+3. EfficientNet: `EfficientNetB0 ~ EfficientNetB7`
+
+4. NLP: `bert`
 
 ##### 2.2.3. Notes:
 
 - keras-bert module should be installed for analysis,
 
-    `pip3 install keras-bert`
+`pip3 install keras-bert`
 
 - For DIN model, please clone the packages from [tensorflow/models](https://github.com/tensorflow/models) to a local folder, and add the folder into  PYTHONPATH
-
 
 
 ## 3. Outputs
@@ -145,7 +145,7 @@ There are two types of output files in the //outputs// torch// ( or //tf) folder
 
 **TF Keras**: Layer names & Types
 
-**Pytorch**:  layer names in multi-levels.  Pytorch models are organized in a nested style. For example，a model may have several sequential/ sub-modules, and each module also have several nn layers.  *The first columns* in the  table demonstrate the hierarchical structures: the layer names in the first columns are at the top level of the model structure, the layer names in second column are at the second level of the model, etc. , as shown below,
+**Pytorch**:  layer names in multi-levels.  Pytorch models are organized in a nested style. For example，a model may have several sequential/ sub-modules, and each module also have several nn layers. *The first columns* in the table demonstrate the hierarchical structures: the layer names in the first columns are at the top level of the model structure, the layer names in second column are at the second level of the model, etc. , as shown below,
 
 ```
                                                             layer-l0		|	layer_l1	|	layer-l1
@@ -158,43 +158,35 @@ There are two types of output files in the //outputs// torch// ( or //tf) folder
         Pytoch Model Hierarchy								pytorch table
 ```
 
-**Input tensors :**
+**Input/Output tensors:**
 
-​			TF Keras version:
+​		-	TF Keras version, the shape of the tensor is formed as (height, width, channel)
 
-​				I0_1,I0_2, I0_3: the shape of the first input
-
-​				I1_1,I1_2,I1_3: the shape of the second input
-
-​			Pytorch version:
-
-​				I1, I2, I3: the shape of the first tensor
-
-​		**Output tensors:** O1,O2,O3: th eshap of the first output
+​		-	Pytorch version, the shape of the tensor is formed in (channel, height, width)
 
 ​		**Kernel Tensors:**
 
-​			k1,k2: kernel size H&W for conv & pooling;
+​			k1,k2: kernel size H&W for conv & pooling, labeld in `Height, Width`
 
-​			s1,s2: stride H&W of rolling windows;
+​			s1,s2: stride H&W of rolling windows, labeld in `X,Y`
 
-​			p1,p2: padding size, values are calculated based on centric padding
+​			p1,p2: padding size, values are calculated based on centric padding, labeld in `X,Y`
 
 ​		**Memory Costs:**
 
-​			SizeI: Size of input tensors
+​			- Size of input tensors
 
-​			SizeO: Size of output tensors
+​			- Size of output tensors
 
-​			SizeW: Size of model parameters，note that the values depends on Byte per Elements(BPE) of the models, default BPE is 4 (fp32)
+​			- Size of model parameters，note that the values depends on Byte per Elements(BPE) of the models, default BPE is 4 (fp32)
 
-​		**Computation Costs:**
+​		**Computation Costs: (Both forward and backward ops)**
 
-​			OpGemm: # of Matrix multi-adds
+​			- `GEMM`: Number of Matrix multi-adds
 
-​			OpVect: # of Element-wise Ops
+​			- `ElemWise`: Number of Element-wise Ops
 
-​			OpActi: # of activations(for transcendental Functions). Relu is also counted as an activation operation for convenience.
+​			- `Activation`: Number of activations(for transcendental Functions). Relu is also counted as an activation operation for convenience.
 
 ​		**misc:**
 
@@ -204,17 +196,17 @@ There are two types of output files in the //outputs// torch// ( or //tf) folder
 
 ​			The cells/layers with the maximum  cost are marked as:
 
-​				The maximum output Tensor:  Red,
+​			- The maximum output tensor: Red,
 
-​				The maximum weight tensor: Pink
+​			- The maximum weight tensor: Pink
 
-​				The maximum matrix multi-add  costs : Green.
+​			- The maximum forward matrix multi-add costs : Green.
+
+​			- The maximum backward matrix multi-add costs : Yellow.
 
 ### 3.2  Model Graphs
 
 ​	A graph to visualize the model structure will be also generated with the same name as the table file.
-
-
 
 ## 4. Add your own model
 
@@ -230,21 +222,23 @@ There are two types of output files in the //outputs// torch// ( or //tf) folder
 
 ​		- model_path: the absolute path which contains the 'model_file'
 
-​		- load model:     from 'model_file' import 'your_model'
+​		- load model:
 
-​									model = your_model(args)    # args: parameters of your model
+`from 'model_file' import 'your_model'`
 
-​		- define inputs of the model:  x = torch.rand(1,3, 300, 300)   #  tensor in (BCHW) format
+`model = your_model(args)    # args: parameters of your model`
 
-​						you may define the input tensors for the customized model.  Multiple inputs are formated as a list of tensors, as shown in the demo.
+​		- define inputs of the model:  `x = torch.rand(1,3, 300, 300)   #  tensor in (BCHW) format`
+
+​You may define the input tensors for the customized model.  Multiple inputs are formated as a list of tensors, as shown in the demo.
 
 #####   b. execute the parser
 
 ​	 type the command as the following format to get the results:
 
-​				`python torch2table.py -n newmodel  --model your_model`
+​`python torch2table.py -n newmodel  --model your_model`
 
-  The optional argument --model is to get the model name. If the no model name provided, the results of the model will be saved as ' newmodel.xlsx' in the outputs folder.
+  The optional argument `--model` is to get the model name. If the no model name provided, the results of the model will be saved as ' newmodel.xlsx' in the outputs folder.
 
 ### 4.2 keras-tf
 
@@ -254,15 +248,14 @@ There are two types of output files in the //outputs// torch// ( or //tf) folder
 
 ​		2 execute command
 
-​				`python keras2table.py -n newmodel  --model your_model`
-
+​`python keras2table.py -n newmodel  --model your_model`
 
 
 ## 5. Advances
 
-​	One can further analyze the various configures of a NN models by changing default settings in the codes. Two examples are shown below.
+One can further analyze the various configures of a NN models by changing default settings in the codes. Two examples are shown below.
 
-​	Note that the functions ( getmodel() & modelLst() ) mentioned below also demonstrate the ways to add a neural network model. Additional neural network models can be added using the similar approaches.
+Note that the functions ( getmodel() & modelLst() ) mentioned below also demonstrate the ways to add a neural network model. Additional neural network models can be added using the similar approaches.
 
 ### Example 1: bert in keras-tf
 
@@ -282,11 +275,10 @@ There are two types of output files in the //outputs// torch// ( or //tf) folder
 
 1. Different settings of dlrm model
 
-   The setting of dlrm model can be adjusted by changing values of variables at line62-72 in  in //utils//pytools//modellst(). Please refer to [DLRM](https://github.com/facebookresearch/dlrm) for the details of these variables.
+The setting of dlrm model can be adjusted by changing values of variables at line62-72 in  in //utils//pytools//modellst(). Please refer to [DLRM](https://github.com/facebookresearch/dlrm) for the details of these variables.
 
 
-
-​	Please note that special network structures and customized operators may not be supported by the tool. Feel free to join us to extend the functions of the tool.
+​Please note that special network structures and customized operators may not be supported by the tool. Feel free to join us to extend the functions of the tool.
 
 ### References:
 

@@ -232,7 +232,7 @@ def tableExport(ms, nnname, y, draw_graph=True):
     df.to_excel(paraout, sheet_name='Details')
 
     # add summary sheet and formatting
-    # ft.SumAndFormat(paraout, df)
+    ft.SumAndFormat(paraout, df)
 
     # do NOT draw densenet201 or higher as it would take tremendous amount of time
     # densenet1xx are all allowed, although densenet169 would take about 3 hours
