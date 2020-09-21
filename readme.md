@@ -16,27 +16,15 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 1.2. The tool works with :
 
-​		Python 3.6+,
-​		Tensorflow 2.1 +,
-​		Pytorch 1.5+
+`Python 3.6+, Tensorflow 2.1 +, Pytorch 1.5+`
 
 1.3. Install the following Python modules:
 
-​		pandas
-​		numpy
-​		matplotlib
-​		openpyxl
-​		scikit-learn
-​		scikit-image
-​		graphviz
-​		python-graphviz
-​		pydot
-
-
+`pandas, numpy,matplotlib,openpyxl,scikit-learn,scikit-image,graphviz,python-graphviz,pydot`
 
 ## 2. Usages:
 
-​	There are two versions of tools integrated in the package, one for ML framework pytorch: *torch2table*; the other is for Tensorflow via keras: *keras2table*.
+There are two versions of tools integrated in the package, one for ML framework pytorch: *torch2table*; the other is for Tensorflow via keras: *keras2table*.
 
 #### 2.1. Pytorch version: torch2Table
 
@@ -80,19 +68,17 @@ It is recommended to install the tool in a virtual environment, explained in [th
 
 3. RNN network:
 
-- base: lstm, gru
-- gnmt
+`lstm, gru, gnmt`
 
-4.  one stage detection: ssd_mobilenet, ssd_r34
+4. one stage detection: `ssd_mobilenet, ssd_r34`
 
-5. Others Models can also be imported, as long as a input tensor is provided  with the model. Please refer to **Section 4** for details.
+5. Others Models can also be imported, as long as a input tensor is provided with the model. Please refer to **Section 4** for details.
 
 
 NOTE:
-1. gnmt model requires seq2seq, which will ask you to downgrade your tensorflow from 2.1+ back to 1.13. Remember to upgrade it back to 2.1+ for other models when needed.
+1. `gnmt` model requires `seq2seq`, which may ask you to downgrade your `tensorflow` from 2.1+ back to 1.13. Remember to upgrade it back to 2.1+ for other models when needed.
 
-2. Some models, such as densenet, will take significantly longer to render network graph because of its complexity. Based on our test (with CPU instead of GPU), a densenet121 takes about several minutes to finish, while densenet161/densenet169 would require more than 2 hours to generate corresponding PDF file.
-
+2. Some models, such as `densenet`, will take significantly longer to render network graph because of its complexity. Based on our test (with CPU instead of GPU), `densenet121` takes about several minutes to finish, while `densenet161/densenet169` would require more than 2 hours to generate corresponding PDF file.
 
 ### 2.2. Tensorflow version: keras2table
 
@@ -110,15 +96,18 @@ NOTE:
 
   -e: element size in byte, for example, float32 = 4, int8 =1, etc.
 
+  -c: channel size of the input data tensor, default at 3 for RGB pictures
+  
+  -H: height size of the input data tensor, default at 250
+  
+  -W: width size of the input data tensor, default at 250
+
 - The results are exported as the excel tables in ''/output/tf/''
 
 ##### 2.2.2. Tested models:
 
 1. keras pretrianed models:
-​    'DenseNet121', 'DenseNet169', 'DenseNet201', 'InceptionResNetV2', 'InceptionV3',
-​    'MobileNet', 'MobileNetV2', 'NASNetLarge', 'NASNetMobile',
-​    'ResNet101', 'ResNet101V2', 'ResNet152', 'ResNet152V2', 'ResNet50', 'ResNet50V2',
-​    'VGG16', 'VGG19',​ 'Xception',
+'DenseNet121', 'DenseNet169', 'DenseNet201', 'InceptionResNetV2', 'InceptionV3','MobileNet', 'MobileNetV2', 'NASNetLarge', 'NASNetMobile','ResNet101', 'ResNet101V2', 'ResNet152', 'ResNet152V2', 'ResNet50', 'ResNet50V2', 'VGG16', 'VGG19', 'Xception',
 
 2. Reomendeation: din
 
@@ -130,7 +119,7 @@ NOTE:
 
 - keras-bert module should be installed for analysis,
 
-    ​		`pip3 install keras-bert`
+    `pip3 install keras-bert`
 
 - For DIN model, please clone the packages from [tensorflow/models](https://github.com/tensorflow/models) to a local folder, and add the folder into  PYTHONPATH
 
@@ -138,25 +127,25 @@ NOTE:
 
 ## 3. Outputs
 
-​	There are two types of output files in the //outputs// torch// ( or //tf) folder: tables in xlsx and graph in pdf. Both are named as the input name of neural networks.
+There are two types of output files in the //outputs// torch// ( or //tf) folder: tables in xlsx and graph in pdf. Both are named as the input name of neural networks.
 
 ### 3.1. The excel table with two sheets.
 
 #### 	3.1.1. summaries sheet:
 
-​	 	Total counts of memory and computation costs.
+- Total counts of memory and computation costs.
 
-​			Note that  1M = 1024 x 1024 for data  size and 1G = 1E9 for ops counts
+- Note that  1M = 1024 x 1024 for data  size and 1G = 1E9 for ops counts
 
 #### 	3.1.2. Details sheet:
 
-​		The results are demonstrated at one nn layer per row. The meanings of columns as below:
+- The results are demonstrated at one nn layer per row. The meanings of columns as below:
 
-​		**Layer:**
+**Layer:**
 
-​			**TF Keras**: Layer names & Types
+**TF Keras**: Layer names & Types
 
-​			**Pytorch**:  layer names in multi-levels.  Pytorch models are organized in a nested style. For example，a model may have several sequential/ sub-modules, and each module also have several nn layers.  *The first columns* in the  table demonstrate the hierarchical structures: the layer names in the first columns are at the top level of the model structure, the layer names in second column are at the second level of the model, etc. , as shown below,
+**Pytorch**:  layer names in multi-levels.  Pytorch models are organized in a nested style. For example，a model may have several sequential/ sub-modules, and each module also have several nn layers.  *The first columns* in the  table demonstrate the hierarchical structures: the layer names in the first columns are at the top level of the model structure, the layer names in second column are at the second level of the model, etc. , as shown below,
 
 ```
                                                             layer-l0		|	layer_l1	|	layer-l1
@@ -169,7 +158,7 @@ NOTE:
         Pytoch Model Hierarchy								pytorch table
 ```
 
-​		**Input tensors :**
+**Input tensors :**
 
 ​			TF Keras version:
 
