@@ -213,7 +213,7 @@ def tableGen(ms,depth,isconv):
     header0 += 'Size of Parameters,'*3 + 'Forward Ops,' * 3 + 'Backward Ops,' * 3 +'\n'
     return header0 + header + ms
 
-def tableExport(ms, nnname, y, draw_graph=True):
+def tableExport(ms, nnname, y, backward, draw_graph=True):
     ms = ms.split('\n')[:-1] # remove the last row--None
     paralist=[]
     for row in ms:
@@ -226,6 +226,9 @@ def tableExport(ms, nnname, y, draw_graph=True):
     headers = list(zip(*paralist[:2]))
 
     df = pd.DataFrame(paralist[2:], columns=pd.MultiIndex.from_tuples(headers))
+
+    if not backward:
+        df.drop('Backward Ops', axis=1, level=0, inplace=True)
 
     df.drop(df.columns[[-1]], axis=1, inplace = True) # remove last column
     paraout = './/outputs//torch//'+nnname+'.xlsx'

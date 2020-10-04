@@ -34,7 +34,8 @@ parser.add_argument("-H","--height", help="Height Size",
                     default=224, type=int)
 parser.add_argument("-W","--width", help="Width Size",
                     default=224, type=int)
-
+parser.add_argument("--backward", help="Include Backward Ops", dest='backward', action='store_true')
+parser.set_defaults(backward=False)
 parser.add_argument("--model", help="name of new model",
                     default='ssd_mob', type=str)
 args = parser.parse_args()
@@ -50,4 +51,4 @@ if args.nnname == 'newmodel':
 else:
     nnname = args.nnname
 
-pt.tableExport(ms,nnname,y)
+pt.tableExport(ms,nnname,y,args.backward)

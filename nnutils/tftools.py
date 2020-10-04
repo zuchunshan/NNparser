@@ -439,9 +439,12 @@ def ListGen(model,isconv,ucfg):
                 paralist.append(new_row)
     return paralist
 
-def tableExport(paralist,nnname):
+def tableExport(paralist,nnname, backward):
     paraout = './/outputs//tf//'+nnname+'.xlsx'
     headers = list(zip(*paralist[:2]))
     df = pd.DataFrame(paralist[2:], columns=pd.MultiIndex.from_tuples(headers))
+    if not backward:
+        df.drop('Backward Ops', axis=1, level=0, inplace=True)
+
     df.to_excel(paraout, sheet_name='Details')
     ft.SumAndFormat(paraout, df)

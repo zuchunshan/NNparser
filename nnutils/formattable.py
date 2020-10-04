@@ -30,10 +30,13 @@ def SumAndFormat(paraout, df=None):
         columns = next(data)
         df = pd.DataFrame(data, columns=columns)
 
+    backward = 'Backward Ops' in df.columns
+
     sizeO = df.loc[:,('Size of Parameters','Output')].apply(str2num)
     sizeW = df.loc[:,('Size of Parameters','Weight')].apply(str2num)
     opGemmF = df.loc[:,('Forward Ops','GEMM')].apply(str2num)
-    opGemmB = df.loc[:,('Backward Ops','GEMM')].apply(str2num)
+    if backward:
+        opGemmB = df.loc[:,('Backward Ops','GEMM')].apply(str2num)
 
     # max size and ops:
     SumSheetGen(
@@ -42,19 +45,16 @@ def SumAndFormat(paraout, df=None):
             ['Total Activations(MB):',sizeO.sum()/(1000**2)],
             ['Total Weights(MB):',sizeW.sum()/(1000**2)],
             ['Total Forward GEMM (G_ops):',opGemmF.sum()/(1000**3)],
-            # ['Total Backward GEMM (G_ops):',opGemmB.sum()/(1000**3)],
         ]
     )
+    summaries = [sizeO.max(),sizeW.max(),opGemmF.max()]
+    if backward:
+        summaries.append(opGemmB.max())
     # set global font etc.
     GlobalFormat(paraout)
     FormatTable(
         paraout,
-        [
-            sizeO.max(),
-            sizeW.max(),
-            opGemmF.max(),
-            opGemmB.max(),
-        ]
+        summaries,
     )
 
 def SumSheetGen(paraout, summaryContent):
@@ -107,10 +107,11 @@ def FormatTable(paraout, maxVal, sheet_name='Details'):
     myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[2])], stopIfTrue=True, fill=background)
     sheet.conditional_formatting.add(fg+'{}:'.format(sheet.min_row)+fg+'{}'.format(sheet.max_row), myrule)
 
-    #  Max Backward Ops Gemm row with yellow
-    background = PatternFill(bgColor="00FFFF00")
-    myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[3])], stopIfTrue=True, fill=background)
-    sheet.conditional_formatting.add(bg+'{}:'.format(sheet.min_row)+bg+'{}'.format(sheet.max_row), myrule)
+    if len(maxVal)==4:
+        #  Max Backward Ops Gemm row with yellow
+        background = PatternFill(bgColor="00FFFF00")
+        myrule= CellIsRule(operator='equal', formula=['{}'.format(maxVal[3])], stopIfTrue=True, fill=background)
+        sheet.conditional_formatting.add(bg+'{}:'.format(sheet.min_row)+bg+'{}'.format(sheet.max_row), myrule)
 
     # print(sheet.merged_cells)
     workbook.save(paraout)

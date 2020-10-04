@@ -19,7 +19,6 @@ import nnutils.tftools as tt
     # 2 Reomendeation: din
     # 3 EfficientNet: EfficientNetB0 ~ EfficientNetB7
     # 4 NLP: bert
-# ! din failed
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -38,6 +37,9 @@ parser.add_argument("-H","--height", help="Height Size",
 parser.add_argument("-W","--width", help="Width Size",
                     default=250, type=int)
 
+parser.add_argument("--backward", help="Include Backward Ops", dest='backward', action='store_true')
+parser.set_defaults(backward=False)
+
 parser.add_argument("--model", help="name of new model",
                     default='simpleconv', type=str)
 args = parser.parse_args()
@@ -52,4 +54,4 @@ if args.nnname == 'newmodel':
     nnname = args.model
 else:
     nnname = args.nnname
-tt.tableExport(paralist,nnname)
+tt.tableExport(paralist,nnname,args.backward)
